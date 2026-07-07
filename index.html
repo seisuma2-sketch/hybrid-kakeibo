@@ -7,75 +7,47 @@
   <style>
     /* 🎨 テーマ変数の定義 */
     :root {
-      --bg-color: #f4f7f6;
-      --container-bg: #ffffff;
-      --text-main: #333333;
-      --text-sub: #888888;
-      --input-bg: #ffffff;
-      --border-color: #cccccc;
-      --accent-color: #007bff;
-      --accent-text: #ffffff;
-      --menu-bg: rgba(255, 255, 255, 0.95);
-      --numpad-panel-bg: #f1f3f5;
-      --numpad-btn-bg: #ffffff;
-      --numpad-btn-active: #e9ecef;
+      --bg-color: #f4f7f6; --container-bg: #ffffff; --text-main: #333333; --text-sub: #888888;
+      --input-bg: #ffffff; --border-color: #cccccc; --accent-color: #007bff; --accent-text: #ffffff;
+      --menu-bg: rgba(255, 255, 255, 0.95); --numpad-panel-bg: #f1f3f5; --numpad-btn-bg: #ffffff;
+      --numpad-btn-active: #e9ecef; --op-btn-bg: #e2e6ea; --op-btn-text: #007bff;
+      --toggle-bg: #e9ecef; --toggle-active-expense: #ff3333; --toggle-active-income: #28a745;
+      --nav-bg: #ffffff; --nav-active: #007bff;
     }
     
-    /* 🟩 サイバーネオンテーマ (黒×緑) */
     body.theme-cyber {
-      --bg-color: #050505;
-      --container-bg: #0a0a0a;
-      --text-main: #00ff66;
-      --text-sub: #008833;
-      --input-bg: #000000;
-      --border-color: #00ff66;
-      --accent-color: #000000;
-      --accent-text: #00ff66;
-      --menu-bg: rgba(5, 5, 5, 0.95);
-      --numpad-panel-bg: #080808;
-      --numpad-btn-bg: #000000;
-      --numpad-btn-active: #00220a;
+      --bg-color: #050505; --container-bg: #0a0a0a; --text-main: #00ff66; --text-sub: #008833;
+      --input-bg: #000000; --border-color: #00ff66; --accent-color: #000000; --accent-text: #00ff66;
+      --menu-bg: rgba(5, 5, 5, 0.95); --numpad-panel-bg: #080808; --numpad-btn-bg: #000000;
+      --numpad-btn-active: #00220a; --op-btn-bg: #001a08; --op-btn-text: #00ff66;
+      --toggle-bg: #111; --toggle-active-expense: #ff0033; --toggle-active-income: #00ff66;
+      --nav-bg: #0a0a0a; --nav-active: #00ff66;
     }
 
-    /* 🌊 ディープオーシャンテーマ (深海ブルー) */
     body.theme-ocean {
-      --bg-color: #020b14;
-      --container-bg: #06192e;
-      --text-main: #e0f7fa;
-      --text-sub: #81d4fa;
-      --input-bg: #011122;
-      --border-color: #0288d1;
-      --accent-color: #00b4d8;
-      --accent-text: #020b14;
-      --menu-bg: rgba(6, 25, 46, 0.95);
-      --numpad-panel-bg: #010d1a;
-      --numpad-btn-bg: #01162c;
-      --numpad-btn-active: #01284f;
+      --bg-color: #020b14; --container-bg: #06192e; --text-main: #e0f7fa; --text-sub: #81d4fa;
+      --input-bg: #011122; --border-color: #0288d1; --accent-color: #00b4d8; --accent-text: #020b14;
+      --menu-bg: rgba(6, 25, 46, 0.95); --numpad-panel-bg: #010d1a; --numpad-btn-bg: #01162c;
+      --numpad-btn-active: #01284f; --op-btn-bg: #022340; --op-btn-text: #00b4d8;
+      --toggle-bg: #011122; --toggle-active-expense: #ff5252; --toggle-active-income: #26a69a;
+      --nav-bg: #06192e; --nav-active: #00b4d8;
     }
 
     /* 共通スタイル */
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: var(--bg-color); color: var(--text-main); transition: background-color 0.3s ease, color 0.3s ease; }
-    
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: var(--bg-color); color: var(--text-main); transition: 0.3s ease; padding-bottom: 80px; }
     .app-header { display: flex; align-items: center; justify-content: center; padding: 15px; position: relative; }
     .header-title { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
     
-    /* 🍔 ハンバーガーメニュー */
+    /* 🍔 メニュー */
     .menu-btn { position: absolute; left: 15px; top: 15px; z-index: 1001; background: none; border: none; cursor: pointer; padding: 5px; display: flex; flex-direction: column; gap: 5px; }
     .menu-btn span { display: block; width: 25px; height: 3px; background-color: var(--text-main); border-radius: 3px; transition: 0.3s; }
     .menu-btn.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
     .menu-btn.open span:nth-child(2) { opacity: 0; }
     .menu-btn.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
-
-    /* 📱 フルスクリーンメニュー */
-    .fullscreen-menu {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background-color: var(--menu-bg); backdrop-filter: blur(10px); z-index: 1000;
-      clip-path: circle(0px at 25px 25px); transition: clip-path 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-    }
-    .fullscreen-menu.open { clip-path: circle(150% at 25px 25px); }
     
-    .menu-content { display: flex; flex-direction: column; gap: 30px; text-align: center; opacity: 0; transform: translateY(20px); transition: 0.3s; transition-delay: 0s; }
+    .fullscreen-menu { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--menu-bg); backdrop-filter: blur(10px); z-index: 1000; clip-path: circle(0px at 25px 25px); transition: clip-path 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .fullscreen-menu.open { clip-path: circle(150% at 25px 25px); }
+    .menu-content { display: flex; flex-direction: column; gap: 30px; text-align: center; opacity: 0; transform: translateY(20px); transition: 0.3s; }
     .fullscreen-menu.open .menu-content { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
     .menu-item { background: none; border: none; color: var(--text-main); font-size: 20px; font-weight: bold; padding: 10px; cursor: pointer; }
     .theme-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 10px; }
@@ -84,66 +56,88 @@
     .theme-circle.t-cyber { background: #000000; border-color: #00ff66; box-shadow: 0 0 10px #00ff66; }
     .theme-circle.t-ocean { background: #06192e; border-color: #00b4d8; }
 
-    /* メインコンテナ */
-    .container { padding: 15px; max-width: 400px; margin: 0 auto; padding-bottom: 60px; }
-    .card { background: var(--container-bg); padding: 20px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
-    
+    /* 🔄 収支切り替えスイッチ */
+    .type-switcher { display: flex; background: var(--toggle-bg); border-radius: 8px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border-color); }
+    .switch-btn { flex: 1; padding: 10px; text-align: center; font-weight: bold; font-size: 14px; border-radius: 6px; cursor: pointer; transition: 0.2s ease; color: var(--text-sub); }
+    .switch-btn.active.expense { background: var(--toggle-active-expense); color: #fff; }
+    .switch-btn.active.income { background: var(--toggle-active-income); color: #fff; }
+    body.theme-cyber .switch-btn.active.income { color: #000; font-weight: bold; box-shadow: 0 0 10px #00ff66; }
+
+    .container { padding: 15px; max-width: 400px; margin: 0 auto; }
+    .card { background: var(--container-bg); padding: 20px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); border: 1px solid var(--border-color); margin-bottom: 15px; }
     label { display: block; margin-top: 15px; font-weight: bold; color: var(--text-sub); font-size: 13px; }
-    input, select {
-      width: 100%; padding: 12px; margin-top: 5px; 
-      background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color);
-      border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: 0.3s;
-    }
-    input:focus, select:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); }
+    input, select { width: 100%; padding: 12px; margin-top: 5px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
+    #amount { font-size: 28px; font-weight: bold; text-align: right; letter-spacing: 1px; padding: 15px; cursor: pointer; }
+
+    /* 📱 画面切り替え（タブパネル） */
+    .app-page { display: none; animation: fadeIn 0.3s ease; }
+    .app-page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 🏦 残高画面用のスタイル */
+    .balance-total-box { text-align: center; padding: 15px 0; }
+    .balance-total-box h4 { margin: 0; color: var(--text-sub); font-weight: normal; font-size: 14px; }
+    .balance-total-box .total-val { font-size: 36px; font-weight: bold; color: var(--text-main); margin-top: 5px; font-family: monospace; }
+    body.theme-cyber .balance-total-box .total-val { color: #00ff66; text-shadow: 0 0 10px rgba(0,255,102,0.4); }
     
-    /* 金額入力欄 */
-    #amount { font-size: 24px; font-weight: bold; text-align: right; letter-spacing: 1px; padding: 12px; cursor: pointer; }
+    .bank-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+    .bank-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; }
+    .bank-name { font-weight: bold; font-size: 16px; }
+    .bank-balance { font-family: monospace; font-weight: bold; font-size: 18px; }
+    .bank-balance.plus { color: #28a745; }
+    .bank-balance.minus { color: #dc3545; }
+    body.theme-cyber .bank-balance.plus { color: #00ff66; }
+    body.theme-cyber .bank-balance.minus { color: #ff0033; }
 
-    /* 🧮 下からせり上がるボトムシート型電卓キーボード */
-    .bottom-numpad-container {
-      position: fixed; bottom: 0; left: 0; width: 100%;
-      background: var(--numpad-panel-bg); border-top: 1px solid var(--border-color);
-      z-index: 2000; box-sizing: border-box; padding: 10px 15px 25px 15px;
-      /* 💡 最初は画面の下に隠しておく */
-      transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94);
-      box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+    .btn-add-bank { width: 100%; padding: 12px; background: transparent; border: 1px dashed var(--border-color); color: var(--text-sub); border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; margin-top: 10px; transition: 0.2s; }
+    .btn-add-bank:hover { border-color: var(--nav-active); color: var(--nav-active); }
+
+    /* ⚓ ボトムナビゲーションバー */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
+      background: var(--nav-bg); border-top: 1px solid var(--border-color);
+      display: flex; z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
-    /* このクラスがつくと下からヌルッと出てくる */
-    .bottom-numpad-container.open { transform: translateY(0); }
+    .nav-tab {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: var(--text-sub); font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; gap: 4px;
+    }
+    .nav-tab .icon { font-size: 20px; }
+    .nav-tab.active { color: var(--nav-active); }
+    body.theme-cyber .nav-tab.active { text-shadow: 0 0 8px #00ff66; }
 
-    /* 電卓のヘッダー（確定ボタンとかを置くバー） */
-    .numpad-header { display: flex; justify-content: flex-end; padding-bottom: 8px; border-bottom: 1px solid rgba(128,128,128,0.2); margin-bottom: 10px; }
-    .numpad-close-btn { background: transparent; border: none; color: var(--text-main); font-size: 16px; font-weight: bold; cursor: pointer; padding: 5px 10px; }
+    /* 🧮 電卓ボトムキーボード */
+    .bottom-numpad-container { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--numpad-panel-bg); border-top: 1px solid var(--border-color); z-index: 2000; box-sizing: border-box; padding: 10px 15px 25px 15px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94); box-shadow: 0 -5px 20px rgba(0,0,0,0.15); }
+    .bottom-numpad-container.open { transform: translateY(0); }
+    .numpad-header { display: flex; flex-direction: column; gap: 5px; padding-bottom: 8px; border-bottom: 1px solid rgba(128,128,128,0.2); margin-bottom: 10px; }
+    .numpad-header-top { display: flex; justify-content: space-between; align-items: center; }
+    .calc-preview { font-size: 14px; color: var(--text-sub); font-family: 'Courier New', Courier, monospace; height: 20px; text-align: right; }
+    .history-tape { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
+    .history-tape::-webkit-scrollbar { display: none; }
+    .history-chip { background: var(--numpad-btn-bg); color: var(--text-sub); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; }
+    body.theme-cyber .history-chip { color: #00ff66; border-color: rgba(0,255,102,0.3); }
+    .numpad-close-btn { background: transparent; border: none; color: var(--text-main); font-size: 14px; font-weight: bold; cursor: pointer; padding: 5px; }
     body.theme-cyber .numpad-close-btn { color: #00ff66; text-shadow: 0 0 5px #00ff66; }
 
-    /* 電卓のグリッド */
-    .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 400px; margin: 0 auto; }
-    .numpad-btn {
-      background: var(--numpad-btn-bg); color: var(--text-main); border: 1px solid var(--border-color);
-      border-radius: 6px; padding: 14px; font-size: 22px; font-weight: bold; font-family: 'Courier New', Courier, monospace;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: background 0.1s, transform 0.1s;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    .numpad-btn:active { background: var(--numpad-btn-active); transform: scale(0.96); }
-    body.theme-cyber .numpad-btn { box-shadow: 0 0 4px rgba(0,255,102,0.1); }
+    .numpad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 400px; margin: 0 auto; }
+    .numpad-btn { background: var(--numpad-btn-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px 0; font-size: 20px; font-weight: bold; font-family: 'Courier New', Courier, monospace; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; }
+    .numpad-btn:active { background: var(--numpad-btn-active); transform: scale(0.95); }
+    .numpad-btn.op { background: var(--op-btn-bg); color: var(--op-btn-text); font-size: 22px; }
     .numpad-btn.clear { color: #ff3333; font-size: 18px; }
-    body.theme-cyber .numpad-btn.clear { color: #ff0033; border-color: #ff0033; text-shadow: 0 0 5px #ff0033; }
+    body.theme-cyber .numpad-btn.clear { color: #ff0033; text-shadow: 0 0 5px #ff0033; }
+    .numpad-btn.equals { background: var(--accent-color); color: var(--accent-text); border: none; }
+    body.theme-cyber .numpad-btn.equals { box-shadow: 0 0 10px rgba(0, 255, 102, 0.4); text-shadow: 0 0 5px #00ff66; }
 
-    .btn-primary { width: 100%; padding: 15px; margin-top: 25px; background-color: var(--accent-color); color: var(--accent-text); border: 1px solid var(--border-color); border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    .btn-primary:active { transform: scale(0.98); opacity: 0.8; }
+    .btn-primary { width: 100%; padding: 15px; margin-top: 25px; background-color: var(--accent-color); color: var(--accent-text); border: 1px solid var(--border-color); border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
     body.theme-cyber .btn-primary { box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); text-shadow: 0 0 5px #00ff66; }
-
     #message { text-align: center; margin-top: 15px; color: var(--accent-color); font-weight: bold; display: none; }
-    .auth-box { text-align: center; margin-top: 40px; }
   </style>
 </head>
 <body class="theme-default">
 
   <div class="app-header" id="appHeader" style="display: none;">
     <button class="menu-btn" id="menuBtn"><span></span><span></span><span></span></button>
-    <div class="header-title">💸 HYBRID KAKEIBO</div>
+    <div class="header-title" id="mainHeaderTitle">💸 支出・収入入力</div>
   </div>
 
   <div class="fullscreen-menu" id="fullMenu">
@@ -156,13 +150,12 @@
           <div class="theme-circle t-ocean" onclick="changeTheme('theme-ocean')"></div>
         </div>
       </div>
-      <button class="menu-item" id="addMethodBtn">＋ 支払い方法を追加</button>
       <button class="menu-item" id="logoutLink" style="color: #ff3333;">ログアウト</button>
     </div>
   </div>
 
   <div class="container auth-box" id="authScreen">
-    <h2 style="margin-bottom: 20px;">SYSTEM LOGIN</h2>
+    <h2>SYSTEM LOGIN</h2>
     <form id="authForm">
       <input type="email" id="authEmail" name="username" autocomplete="username" placeholder="メールアドレス" required>
       <input type="password" id="authPassword" name="password" autocomplete="current-password" placeholder="パスワード" required>
@@ -171,20 +164,20 @@
     <p id="authToggle" style="margin-top: 20px; font-size: 14px; color: var(--text-sub); cursor: pointer; text-decoration: underline;">新規登録モードへ切り替え</p>
   </div>
 
-  <div class="container" id="mainForm" style="display: none;">
+  <div id="page-input" class="container app-page">
     <div class="card">
-      <label>金額</label>
-<input type="text" id="amount" placeholder="¥ 0" readonly inputmode="none">
-      <label>カテゴリ</label>
-      <select id="category">
-        <option value="食費">食費</option>
-        <option value="日用品">日用品</option>
-        <option value="交通費">交通費</option>
-        <option value="娯楽">娯楽</option>
-        <option value="その他">その他</option>
-      </select>
+      <div class="type-switcher">
+        <div class="switch-btn active expense" id="btnExpense" onclick="switchType('expense')">支出</div>
+        <div class="switch-btn income" id="btnIncome" onclick="switchType('income')">収入</div>
+      </div>
 
-      <label>支払い方法</label>
+      <label id="labelAmount">金額</label>
+      <input type="text" id="amount" placeholder="¥ 0" readonly inputmode="none">
+
+      <label>カテゴリ</label>
+      <select id="category"></select>
+
+      <label id="labelMethod">支払い方法</label>
       <select id="paymentMethod"></select>
 
       <label>メモ (任意)</label>
@@ -195,29 +188,65 @@
     </div>
   </div>
 
+  <div id="page-balance" class="container app-page">
+    <div class="card balance-total-box">
+      <h4>現在の総資産残高</h4>
+      <div class="total-val" id="allAssetTotal">¥0</div>
+    </div>
+    
+    <div class="card">
+      <p style="margin:0; font-size:13px; color:var(--text-sub); font-weight:bold;">口座・決済手段別の残高</p>
+      <div class="bank-list" id="bankListContainer">
+        </div>
+      <button class="btn-add-bank" id="addBankBtn">＋ 新しい銀行・口座を追加</button>
+    </div>
+  </div>
+
+  <div class="bottom-nav" id="bottomNav" style="display: none;">
+    <div class="nav-tab active" id="navTabInput" onclick="switchPage('input')">
+      <div class="icon">✏️</div>
+      <div>入力</div>
+    </div>
+    <div class="nav-tab" id="navTabBalance" onclick="switchPage('balance')">
+      <div class="icon">🏦</div>
+      <div>残高一覧</div>
+    </div>
+  </div>
+
   <div class="bottom-numpad-container" id="bottomNumpad">
     <div class="numpad-header">
-      <button class="numpad-close-btn" onclick="closeNumpad()">確定 🔽</button>
+      <div class="history-tape" id="historyTape"></div>
+      <div class="numpad-header-top">
+        <div class="calc-preview" id="calcPreview"></div>
+        <button class="numpad-close-btn" onclick="closeNumpad()">閉じる 🔽</button>
+      </div>
     </div>
     <div class="numpad-grid">
-      <button class="numpad-btn" onclick="inputNum('1')">1</button>
-      <button class="numpad-btn" onclick="inputNum('2')">2</button>
-      <button class="numpad-btn" onclick="inputNum('3')">3</button>
-      <button class="numpad-btn" onclick="inputNum('4')">4</button>
-      <button class="numpad-btn" onclick="inputNum('5')">5</button>
-      <button class="numpad-btn" onclick="inputNum('6')">6</button>
+      <button class="numpad-btn clear" onclick="clearNum()">C</button>
+      <button class="numpad-btn op" onclick="chooseOp('÷')">÷</button>
+      <button class="numpad-btn op" onclick="chooseOp('×')">×</button>
+      <button class="numpad-btn" onclick="backspaceNum()">⌫</button>
       <button class="numpad-btn" onclick="inputNum('7')">7</button>
       <button class="numpad-btn" onclick="inputNum('8')">8</button>
       <button class="numpad-btn" onclick="inputNum('9')">9</button>
-      <button class="numpad-btn clear" onclick="clearNum()">C</button>
+      <button class="numpad-btn op" onclick="chooseOp('-')">-</button>
+      <button class="numpad-btn" onclick="inputNum('4')">4</button>
+      <button class="numpad-btn" onclick="inputNum('5')">5</button>
+      <button class="numpad-btn" onclick="inputNum('6')">6</button>
+      <button class="numpad-btn op" onclick="chooseOp('+')">+</button>
+      <button class="numpad-btn" onclick="inputNum('1')">1</button>
+      <button class="numpad-btn" onclick="inputNum('2')">2</button>
+      <button class="numpad-btn" onclick="inputNum('3')">3</button>
+      <button class="numpad-btn equals" style="grid-row: span 2;" onclick="compute()">=</button>
       <button class="numpad-btn" onclick="inputNum('0')">0</button>
-      <button class="numpad-btn" onclick="backspaceNum()">⌫</button>
+      <button class="numpad-btn" onclick="inputNum('00')">00</button>
+      <button class="numpad-btn" style="font-size: 14px;" onclick="addTax()">税込</button>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, setDoc, getDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
     // ⚠️ ここは本物の config に書き換えてね！ ⚠️
@@ -236,161 +265,222 @@
     const auth = getAuth(app);
 
     let isSignUpMode = false;
+    let currentDataType = "expense";
     let currentMethods = ["現金", "EVERING", "クレジットカード", "郵カード", "Uカード", "住カード", "ぺいぺい"];
 
-    // 🧮 ボトムキーボード制御ロジック
-    const amountField = document.getElementById("amount");
-    const bottomNumpad = document.getElementById("bottomNumpad");
-    
-    // 金額をタップしたら下から出現
-    amountField.addEventListener("click", (e) => {
-      e.preventDefault(); // スマホの標準動作をブロック
-      e.stopPropagation(); // イベントの連鎖を止める
-      amountField.blur(); // 💡 強制的にフォーカスを外して標準キーボードを消す！
-      bottomNumpad.classList.add("open");
-    });
-    
-    // 確定ボタンで引っ込む
-    window.closeNumpad = function() {
-      bottomNumpad.classList.remove("open");
-    };
-    
-    // 画面の他の場所をタップしても引っ込む
-    document.addEventListener("click", (e) => {
-      if (!bottomNumpad.contains(e.target) && e.target !== amountField) {
-        closeNumpad();
+    const expenseCategories = ["食費", "日用品", "交通費", "娯楽", "その他"];
+    const incomeCategories = ["給与", "バイト代", "お小遣い", "副収入", "その他"];
+
+    let unsubscribeTransactions = null;
+
+    // 📱 ページ（画面）切り替えロジック
+    window.switchPage = function(pageName) {
+      document.querySelectorAll('.app-page').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+      
+      if (pageName === 'input') {
+        document.getElementById('page-input').classList.add('active');
+        document.getElementById('navTabInput').classList.add('active');
+        document.getElementById('mainHeaderTitle').innerText = "💸 支出・収入入力";
+      } else {
+        document.getElementById('page-balance').classList.add('active');
+        document.getElementById('navTabBalance').classList.add('active');
+        document.getElementById('mainHeaderTitle').innerText = "🏦 残高・口座一覧";
       }
-    });
+    };
+
+    // 🔄 収支タイプ切り替え
+    window.switchType = function(type) {
+      currentDataType = type;
+      const btnExpense = document.getElementById("btnExpense");
+      const btnIncome = document.getElementById("btnIncome");
+      const catSelect = document.getElementById("category");
+      catSelect.innerHTML = "";
+      if (type === "expense") {
+        btnExpense.classList.add("active"); btnIncome.classList.remove("active");
+        document.getElementById("labelAmount").innerText = "金額"; document.getElementById("labelMethod").innerText = "支払い方法";
+        expenseCategories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
+      } else {
+        btnIncome.classList.add("active"); btnExpense.classList.remove("active");
+        document.getElementById("labelAmount").innerText = "収入金額"; document.getElementById("labelMethod").innerText = "受取先・口座";
+        incomeCategories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
+      }
+    };
+
+    // 🧮 電卓制御
+    const amountField = document.getElementById("amount"); const bottomNumpad = document.getElementById("bottomNumpad");
+    const calcPreview = document.getElementById("calcPreview"); const historyTape = document.getElementById("historyTape");
+    let currentVal = ""; let previousVal = ""; let operation = null; let shouldResetScreen = false;
+    let amountHistory = JSON.parse(localStorage.getItem('kakeibo-history')) || [];
+
+    function updateDisplay() {
+      amountField.value = currentVal === "" ? "¥ 0" : "¥ " + Number(currentVal).toLocaleString();
+      calcPreview.innerText = operation ? `${Number(previousVal).toLocaleString()} ${operation} ${currentVal ? Number(currentVal).toLocaleString() : ''}` : "";
+    }
+    function renderHistory() {
+      historyTape.innerHTML = "";
+      amountHistory.forEach(val => {
+        const chip = document.createElement("div"); chip.className = "history-chip"; chip.innerText = "¥ " + Number(val).toLocaleString();
+        chip.onclick = () => { currentVal = val.toString(); operation = null; previousVal = ""; updateDisplay(); }; historyTape.appendChild(chip);
+      });
+    }
+    renderHistory();
 
     window.inputNum = function(num) {
-      let current = amountField.value.replace("¥ ", "").replace(/,/g, "");
-      if (current === "0") current = "";
-      
-      if (current.length < 8) { // 桁制限
-        current += num;
-        amountField.value = "¥ " + Number(current).toLocaleString();
-      }
+      if (shouldResetScreen) { currentVal = ""; shouldResetScreen = false; }
+      if (currentVal === "0" && num !== "0" && num !== "00") currentVal = "";
+      if (currentVal.length < 9) currentVal += num; updateDisplay();
     };
-    
-    window.clearNum = function() {
-      amountField.value = "¥ 0";
+    window.chooseOp = function(op) { if (currentVal === "") return; if (previousVal !== "") compute(); operation = op; previousVal = currentVal; currentVal = ""; updateDisplay(); };
+    window.compute = function() {
+      let computation; const prev = parseFloat(previousVal); const current = parseFloat(currentVal);
+      if (isNaN(prev) || isNaN(current)) return;
+      switch (operation) { case '+': computation = prev + current; break; case '-': computation = prev - current; break; case '×': computation = prev * current; break; case '÷': computation = prev / current; break; default: return; }
+      currentVal = Math.floor(computation).toString(); operation = null; previousVal = ""; shouldResetScreen = true; updateDisplay();
     };
-    
-    window.backspaceNum = function() {
-      let current = amountField.value.replace("¥ ", "").replace(/,/g, "");
-      current = current.slice(0, -1);
-      if (current === "" || current === "0") {
-        amountField.value = "¥ 0";
-      } else {
-        amountField.value = "¥ " + Number(current).toLocaleString();
-      }
-    };
+    window.addTax = function() { if (currentVal === "") return; currentVal = Math.floor(Number(currentVal) * 1.1).toString(); shouldResetScreen = true; updateDisplay(); };
+    window.clearNum = function() { currentVal = ""; previousVal = ""; operation = null; updateDisplay(); };
+    window.backspaceNum = function() { currentVal = currentVal.slice(0, -1); updateDisplay(); };
 
-    // 🎨 テーマ管理
-    const savedTheme = localStorage.getItem('kakeibo-theme') || 'theme-default';
-    document.body.className = savedTheme;
+    amountField.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); amountField.blur(); bottomNumpad.classList.add("open"); });
+    window.closeNumpad = function() { bottomNumpad.classList.remove("open"); };
+    document.addEventListener("click", (e) => { if (!bottomNumpad.contains(e.target) && e.target !== amountField) closeNumpad(); });
 
-    window.changeTheme = function(themeName) {
-      document.body.className = themeName;
-      localStorage.setItem('kakeibo-theme', themeName);
-      toggleMenu();
-    };
+    // 🎨 テーマ
+    const savedTheme = localStorage.getItem('kakeibo-theme') || 'theme-default'; document.body.className = savedTheme;
+    window.changeTheme = function(themeName) { document.body.className = themeName; localStorage.setItem('kakeibo-theme', themeName); toggleMenu(); };
 
-    // 🍔 メニュー開閉
-    const menuBtn = document.getElementById('menuBtn');
-    const fullMenu = document.getElementById('fullMenu');
+    // 🍔 メニュー
+    const menuBtn = document.getElementById('menuBtn'); const fullMenu = document.getElementById('fullMenu');
     function toggleMenu() { menuBtn.classList.toggle('open'); fullMenu.classList.toggle('open'); }
     menuBtn.addEventListener('click', toggleMenu);
 
-    // 支払い方法の描画
     function renderMethods() {
-      const select = document.getElementById("paymentMethod");
-      select.innerHTML = "";
-      currentMethods.forEach(method => {
-        const opt = document.createElement("option");
-        opt.value = method; opt.innerText = method; select.appendChild(opt);
+      const select = document.getElementById("paymentMethod"); select.innerHTML = "";
+      currentMethods.forEach(method => { const opt = document.createElement("option"); opt.value = method; opt.innerText = method; select.appendChild(opt); });
+    }
+
+    // 💡 リアルタイム残高計算 & 表示システム
+    function startRealtimeBalanceSync(uid) {
+      const q = query(collection(db, "transactions"), where("userId", "==", uid));
+      unsubscribeTransactions = onSnapshot(q, (snapshot) => {
+        const balances = {};
+        let grandTotal = 0;
+
+        // すべての登録口座を0で初期化
+        currentMethods.forEach(m => balances[m] = 0);
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const amount = data.amount || 0;
+          const type = data.type || "expense";
+          const method = data.paymentMethod;
+
+          if (!balances[method]) balances[method] = 0;
+
+          if (type === "income") {
+            balances[method] += amount;
+            grandTotal += amount;
+          } else {
+            balances[method] -= amount;
+            grandTotal -= amount;
+          }
+        });
+
+        // 総残高の描画
+        document.getElementById("allAssetTotal").innerText = "¥ " + grandTotal.toLocaleString();
+
+        // 口座別リストの描画
+        const container = document.getElementById("bankListContainer");
+        container.innerHTML = "";
+        
+        Object.keys(balances).forEach(name => {
+          const bal = balances[name];
+          const signClass = bal >= 0 ? "plus" : "minus";
+          
+          container.innerHTML += `
+            <div class="bank-item">
+              <span class="bank-name">${name}</span>
+              <span class="bank-balance ${signClass}">¥ ${bal.toLocaleString()}</span>
+            </div>
+          `;
+        });
       });
     }
 
-    // モード切り替え
     document.getElementById("authToggle").addEventListener("click", (e) => {
       isSignUpMode = !isSignUpMode;
       e.target.innerText = isSignUpMode ? "ログイン画面へ戻る" : "新規登録モードへ切り替え";
       document.querySelector("#authForm button").innerText = isSignUpMode ? "新規登録" : "ログイン";
     });
 
-    // 認証監視
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         document.getElementById("authScreen").style.display = "none";
-        document.getElementById("mainForm").style.display = "block";
         document.getElementById("appHeader").style.display = "flex";
-
-        const userRef = doc(db, "user_settings", user.uid);
-        const snap = await getDoc(userRef);
-        if (snap.exists() && snap.data().paymentMethods) {
-          currentMethods = snap.data().paymentMethods;
-        } else {
-          await setDoc(userRef, { paymentMethods: currentMethods }, { merge: true });
-        }
-        renderMethods();
-        amountField.value = "¥ 0"; // 初期値
+        document.getElementById("bottomNav").style.display = "flex";
+        
+        const userRef = doc(db, "user_settings", user.uid); const snap = await getDoc(userRef);
+        if (snap.exists() && snap.data().paymentMethods) { currentMethods = snap.data().paymentMethods; } 
+        else { await setDoc(userRef, { paymentMethods: currentMethods }, { merge: true }); }
+        
+        renderMethods(); switchType("expense"); switchPage("input"); clearNum();
+        startRealtimeBalanceSync(user.uid); // 残高同期の開始
       } else {
         document.getElementById("authScreen").style.display = "block";
-        document.getElementById("mainForm").style.display = "none";
         document.getElementById("appHeader").style.display = "none";
+        document.getElementById("bottomNav").style.display = "none";
+        document.getElementById("page-input").style.display = "none";
+        document.getElementById("page-balance").style.display = "none";
+        if (unsubscribeTransactions) unsubscribeTransactions();
       }
     });
 
-    // ログイン処理
     document.getElementById("authForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("authEmail").value;
-      const password = document.getElementById("authPassword").value;
-      try {
-        if (isSignUpMode) { await createUserWithEmailAndPassword(auth, email, password); } 
-        else { await signInWithEmailAndPassword(auth, email, password); }
-      } catch (error) { alert(`エラー: ${error.message}`); }
+      e.preventDefault(); const email = document.getElementById("authEmail").value; const password = document.getElementById("authPassword").value;
+      try { if (isSignUpMode) { await createUserWithEmailAndPassword(auth, email, password); } else { await signInWithEmailAndPassword(auth, email, password); } } catch (error) { alert(`エラー: ${error.message}`); }
     });
-
-    // ログアウト
     document.getElementById("logoutLink").addEventListener("click", () => { toggleMenu(); signOut(auth); });
 
-    // 支払い方法追加
-    document.getElementById("addMethodBtn").addEventListener("click", async () => {
-      toggleMenu();
-      setTimeout(async () => {
-        const newMethod = prompt("新しい支払い方法を入力してね！\n例: Suica, 楽天ペイ");
-        if (newMethod && newMethod.trim() !== "") {
-          const trimmed = newMethod.trim();
-          if (!currentMethods.includes(trimmed)) {
-            currentMethods.push(trimmed); renderMethods(); document.getElementById("paymentMethod").value = trimmed;
-            const user = auth.currentUser;
-            if (user) await setDoc(doc(db, "user_settings", user.uid), { paymentMethods: currentMethods }, { merge: true });
-          } else { alert("すでに登録されてるよ！"); }
+    // 💡 新しい銀行・口座を追加する処理（初期残高設定つき！）
+    document.getElementById("addBankBtn").addEventListener("click", async () => {
+      const newBank = prompt("新しく追加する銀行・口座名を入力してね！\n例: 三井住友銀行, 楽天Pay");
+      if (newBank && newBank.trim() !== "") {
+        const trimmed = newBank.trim();
+        if (currentMethods.includes(trimmed)) { alert("その口座はすでに登録されているよ！"); return; }
+
+        const initialBalanceStr = prompt(`「${trimmed}」の現在のリアル残高（スタート金額）を入力してね！\nなければ 0 でOK！`);
+        const initialBalance = Number(initialBalanceStr);
+
+        currentMethods.push(trimmed);
+        renderMethods();
+
+        const user = auth.currentUser;
+        if (user) {
+          // 1. 口座リストを更新
+          await setDoc(doc(db, "user_settings", user.uid), { paymentMethods: currentMethods }, { merge: true });
+          
+          // 2. 初期残高が0より大きければ、自動で「収入」として突っ込んで残高を合わせる！
+          if (initialBalance && initialBalance > 0) {
+            await addDoc(collection(db, "transactions"), {
+              amount: initialBalance, category: "その他", type: "income",
+              paymentMethod: trimmed, memo: "初期残高設定", date: new Date(), userId: user.uid
+            });
+          }
+          alert(`「${trimmed}」を初期残高 ¥${initialBalance.toLocaleString()} で登録したよ！`);
         }
-      }, 300);
+      }
     });
 
-    // データ送信処理
+    // データ送信
     document.getElementById("submitBtn").addEventListener("click", async () => {
-      const amountStr = amountField.value.replace("¥ ", "").replace(/,/g, "");
-      const amount = Number(amountStr);
-      const category = document.getElementById("category").value;
-      const paymentMethod = document.getElementById("paymentMethod").value;
-      const memo = document.getElementById("memo").value;
-
+      if (operation !== null) compute(); const amount = Number(currentVal);
+      const category = document.getElementById("category").value; const paymentMethod = document.getElementById("paymentMethod").value; const memo = document.getElementById("memo").value;
       if (!amount || amount === 0) { alert("金額を入力してね！"); return; }
-
       try {
-        await addDoc(collection(db, "transactions"), {
-          amount: amount, category: category, type: "expense",
-          paymentMethod: paymentMethod, memo: memo, date: new Date(), userId: auth.currentUser.uid 
-        });
-
-        document.getElementById("message").style.display = "block";
-        amountField.value = "¥ 0";
-        document.getElementById("memo").value = "";
+        await addDoc(collection(db, "transactions"), { amount: amount, category: category, type: currentDataType, paymentMethod: paymentMethod, memo: memo, date: new Date(), userId: auth.currentUser.uid });
+        amountHistory.unshift(amount); if (amountHistory.length > 5) amountHistory.pop(); localStorage.setItem('kakeibo-history', JSON.stringify(amountHistory)); renderHistory();
+        document.getElementById("message").style.display = "block"; clearNum(); document.getElementById("memo").value = "";
         setTimeout(() => { document.getElementById("message").style.display = "none"; }, 3000);
       } catch (error) { alert("保存に失敗しました。"); }
     });
