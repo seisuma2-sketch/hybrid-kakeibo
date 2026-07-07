@@ -5,36 +5,39 @@
   <title>ハイブリッド家計簿 - 分析ダッシュボード</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { background-color: #0d0e12; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 30px; overflow-x: hidden; }
+    body { background-color: #0d0e12; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
     
-    /* 🔒 ロック画面 */
-    #lockScreen {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background-color: #000; z-index: 9999;
+    /* 1️⃣ 最初の認証画面（ログイン/新規登録） */
+    #authScreen {
       display: flex; flex-direction: column; justify-content: center; align-items: center;
+      height: 100vh; background-color: #0d0e12;
+    }
+    #loginFormContainer {
+      background: #161822; border: 2px solid #00ff66; border-radius: 8px;
+      padding: 30px; width: 320px; box-shadow: 0 0 20px rgba(0, 255, 102, 0.2);
+    }
+    #loginFormContainer h3 { color: #00ff66; margin-top: 0; text-align: center; font-size: 20px; letter-spacing: 1px; }
+    #loginFormContainer label { display: block; margin-top: 15px; font-size: 12px; color: #888; }
+    #loginFormContainer input { width: 100%; padding: 10px; margin-top: 5px; background: #0d0e12; border: 1px solid #252838; color: #fff; border-radius: 4px; box-sizing: border-box; }
+    #loginFormContainer input:focus { border-color: #00ff66; outline: none; }
+    .cyber-btn { width: 100%; padding: 12px; margin-top: 25px; background: #00ff66; color: #000; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    .cyber-btn:hover { background: #00cc52; }
+    .toggle-text { text-align: center; font-size: 12px; margin-top: 15px; color: #00bfff; cursor: pointer; }
+
+    /* 2️⃣ 隠しコマンド待機画面 */
+    #lockScreen {
+      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background-color: #000; z-index: 9999;
+      flex-direction: column; justify-content: center; align-items: center;
       color: #00ff66; font-family: 'Courier New', Courier, monospace;
     }
     .blink { animation: blinker 1s linear infinite; }
     @keyframes blinker { 50% { opacity: 0; } }
 
-    /* ⌨️ 隠しコマンド後に開くサイバー入力フォーム */
-    #loginFormContainer {
-      display: none; background: #161822; border: 2px solid #00ff66; border-radius: 8px;
-      padding: 25px; width: 320px; box-shadow: 0 0 20px rgba(0, 255, 102, 0.4); margin-top: 20px;
-      text-align: left; font-family: 'Segoe UI', sans-serif;
-    }
-    #loginFormContainer h3 { color: #00ff66; margin-top: 0; text-align: center; font-size: 18px; }
-    #loginFormContainer label { display: block; margin-top: 10px; font-size: 12px; color: #888; }
-    #loginFormContainer input { width: 100%; padding: 8px; margin-top: 5px; background: #0d0e12; border: 1px solid #252838; color: #fff; border-radius: 4px; box-sizing: border-box; }
-    #loginFormContainer input:focus { border-color: #00ff66; outline: none; }
-    .cyber-btn { width: 100%; padding: 10px; margin-top: 15px; background: #00ff66; color: #000; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; }
-    .cyber-btn:hover { background: #00cc52; }
-    .toggle-text { text-align: center; font-size: 11px; margin-top: 12px; color: #00bfff; cursor: pointer; }
-
-    /* 📊 ダッシュボード本体 */
-    #dashboardContent { display: none; }
+    /* 3️⃣ ダッシュボード本体 */
+    #dashboardContent { display: none; padding: 30px; }
     .header { border-bottom: 2px solid #00ff66; padding-bottom: 15px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
-    h1 { color: #00ff66; margin: 0; font-size: 28px; text-shadow: 0 0 10px rgba(0, 255, 102, 0.5); }
+    h1 { color: #00ff66; margin: 0; font-size: 24px; text-shadow: 0 0 10px rgba(0, 255, 102, 0.5); }
     .summary-container { display: flex; gap: 20px; margin-bottom: 30px; }
     .card { background: #161822; border: 1px solid #252838; border-radius: 8px; padding: 20px; flex: 1; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     .card h3 { color: #888; margin: 0 0 10px 0; font-size: 14px; }
@@ -53,34 +56,34 @@
 </head>
 <body>
 
-  <div id="lockScreen">
-    <div id="lockPrompt" style="text-align: center;">
-      <h2 style="margin-bottom: 5px;">SYSTEM LOCKED</h2>
-      <p style="color: #666; font-size: 14px;">Awaiting Developer Command<span class="blink">_</span></p>
-    </div>
-    
+  <div id="authScreen">
     <div id="loginFormContainer">
-      <h3 id="formTitle">⚡ INITIALIZE AUTH</h3>
-      <label>ACCESS ID (EMAIL)</label>
+      <h3 id="formTitle">⚡ システムログイン</h3>
+      <label>メールアドレス</label>
       <input type="email" id="pcEmail">
-      <label>PASSKEY (PASSWORD)</label>
+      <label>パスワード</label>
       <input type="password" id="pcPassword">
-      <button class="cyber-btn" id="pcAuthBtn">EXECUTE LOGIN</button>
-      <div class="toggle-text" id="pcAuthToggle">CREATE NEW ACCOUNT?</div>
+      <button class="cyber-btn" id="pcAuthBtn">ログイン</button>
+      <div class="toggle-text" id="pcAuthToggle">新規登録はこちら</div>
     </div>
+  </div>
+
+  <div id="lockScreen">
+    <h2 style="margin-bottom: 5px;">認証完了</h2>
+    <p style="color: #666; font-size: 14px;">開発者コマンド待機中<span class="blink">_</span></p>
   </div>
 
   <div id="dashboardContent">
     <div class="header">
-      <h1>⚡ CYBER KAKEIBO DASHBOARD</h1>
+      <h1>⚡ サイバー家計簿ダッシュボード</h1>
       <div style="text-align: right;">
         <span id="userNameDisplay" style="color: #888; font-size: 14px; margin-right: 15px;"></span>
-        <span id="pcLogout" style="color: #ff0033; font-size: 12px; cursor: pointer; font-weight: bold;">[ SHUTDOWN ]</span>
+        <span id="pcLogout" style="color: #ff0033; font-size: 12px; cursor: pointer; font-weight: bold;">[ ログアウト ]</span>
       </div>
     </div>
     <div class="summary-container">
       <div class="card"><h3>今月の総支出</h3><div class="value neon" id="totalExpense">¥0</div></div>
-      <div class="card"><h3>データ同期ステータス</h3><div class="value" style="color: #00bfff;">SECURE ONLINE</div></div>
+      <div class="card"><h3>システム状態</h3><div class="value" style="color: #00bfff;">オンライン接続済み</div></div>
     </div>
     <div class="charts-grid">
       <div class="chart-box"><h2>■ 支払い方法別支出</h2><canvas id="methodChart"></canvas></div>
@@ -119,69 +122,78 @@
     const neonColors = ['#00ff66', '#00bfff', '#ff00ff', '#ffaa00', '#ff0033', '#9933ff', '#ccff00'];
     let unsubscribe = null;
     let isPcSignUpMode = false;
+    let isAwaitingCommand = false;
 
-    // 💡 ショートカットキー (Ctrl + Shift + Enter) でフォームを展開
-    window.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'Enter') {
-        document.getElementById('lockPrompt').style.display = 'none';
-        document.getElementById('loginFormContainer').style.display = 'block';
-      }
-    });
-
-    // PC側ログイン/新規登録モード切り替え
+    // モード切り替え
     document.getElementById('pcAuthToggle').addEventListener('click', () => {
       isPcSignUpMode = !isPcSignUpMode;
       if (isPcSignUpMode) {
-        document.getElementById('formTitle').innerText = "📝 REGISTER NODE";
-        document.getElementById('pcAuthBtn').innerText = "EXECUTE REGISTRATION";
-        document.getElementById('pcAuthToggle').innerText = "BACK TO LOGIN?";
+        document.getElementById('formTitle').innerText = "📝 新規アカウント登録";
+        document.getElementById('pcAuthBtn').innerText = "登録する";
+        document.getElementById('pcAuthToggle').innerText = "ログイン画面へ戻る";
       } else {
-        document.getElementById('formTitle').innerText = "⚡ INITIALIZE AUTH";
-        document.getElementById('pcAuthBtn').innerText = "EXECUTE LOGIN";
-        document.getElementById('pcAuthToggle').innerText = "CREATE NEW ACCOUNT?";
+        document.getElementById('formTitle').innerText = "⚡ システムログイン";
+        document.getElementById('pcAuthBtn').innerText = "ログイン";
+        document.getElementById('pcAuthToggle').innerText = "新規登録はこちら";
       }
     });
 
-    // 認証処理の実行
+    // 認証ボタンの処理
     document.getElementById('pcAuthBtn').addEventListener('click', async () => {
       const email = document.getElementById('pcEmail').value;
       const password = document.getElementById('pcPassword').value;
       
       try {
-        // セッション永続性を設定（タブを閉じたら自動ログアウト）
         await setPersistence(auth, browserSessionPersistence);
-        
         if (isPcSignUpMode) {
           await createUserWithEmailAndPassword(auth, email, password);
-          alert("Node Registered Successfully.");
         } else {
           await signInWithEmailAndPassword(auth, email, password);
         }
       } catch (error) {
-        alert(`ACCESS DENIED: ${error.message}`);
+        alert(`エラー: ${error.message}`);
       }
     });
 
     // ログイン状態の監視
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        document.getElementById('lockScreen').style.display = 'none';
-        document.getElementById('dashboardContent').style.display = 'block';
-        document.getElementById('userNameDisplay').innerText = `Operator: ${user.email}`;
-        startDataSync();
-      } else {
+        // ログイン成功！ フォームを消して、コマンド待機画面を出す
+        document.getElementById('authScreen').style.display = 'none';
         document.getElementById('lockScreen').style.display = 'flex';
-        document.getElementById('lockPrompt').style.display = 'block';
-        document.getElementById('loginFormContainer').style.display = 'none';
         document.getElementById('dashboardContent').style.display = 'none';
+        document.getElementById('userNameDisplay').innerText = `ログイン中: ${user.email}`;
+        
+        isAwaitingCommand = true;
+      } else {
+        // ログアウト状態： フォームだけを見せる
+        document.getElementById('authScreen').style.display = 'flex';
+        document.getElementById('lockScreen').style.display = 'none';
+        document.getElementById('dashboardContent').style.display = 'none';
+        isAwaitingCommand = false;
         if (unsubscribe) unsubscribe();
       }
     });
 
-    // シャットダウン（ログアウト）ボタン
+    // 💡 ショートカットキー (Ctrl + Shift + Enter) でダッシュボード展開！
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'Enter') {
+        if (isAwaitingCommand) {
+          console.log("コマンド受付完了。ダッシュボードを起動します...");
+          
+          document.getElementById('lockScreen').style.display = 'none';
+          document.getElementById('dashboardContent').style.display = 'block';
+          
+          startDataSync();
+          isAwaitingCommand = false;
+        }
+      }
+    });
+
+    // ログアウト
     document.getElementById('pcLogout').addEventListener('click', () => { signOut(auth); });
 
-    // データ同期とグラフ描画処理 (前と同じ)
+    // データ同期とグラフ描画処理
     function startDataSync() {
       const q = query(collection(db, "transactions"), orderBy("date", "desc"));
       unsubscribe = onSnapshot(q, (snapshot) => {
