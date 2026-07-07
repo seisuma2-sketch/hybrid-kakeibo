@@ -33,12 +33,10 @@
       --nav-bg: #06192e; --nav-active: #00b4d8;
     }
 
-    /* 共通スタイル */
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: var(--bg-color); color: var(--text-main); transition: 0.3s ease; padding-bottom: 80px; }
     .app-header { display: flex; align-items: center; justify-content: center; padding: 15px; position: relative; }
     .header-title { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
     
-    /* 🍔 メニュー */
     .menu-btn { position: absolute; left: 15px; top: 15px; z-index: 1001; background: none; border: none; cursor: pointer; padding: 5px; display: flex; flex-direction: column; gap: 5px; }
     .menu-btn span { display: block; width: 25px; height: 3px; background-color: var(--text-main); border-radius: 3px; transition: 0.3s; }
     .menu-btn.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
@@ -56,7 +54,6 @@
     .theme-circle.t-cyber { background: #000000; border-color: #00ff66; box-shadow: 0 0 10px #00ff66; }
     .theme-circle.t-ocean { background: #06192e; border-color: #00b4d8; }
 
-    /* 🔄 収支切り替えスイッチ */
     .type-switcher { display: flex; background: var(--toggle-bg); border-radius: 8px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border-color); }
     .switch-btn { flex: 1; padding: 10px; text-align: center; font-weight: bold; font-size: 14px; border-radius: 6px; cursor: pointer; transition: 0.2s ease; color: var(--text-sub); }
     .switch-btn.active.expense { background: var(--toggle-active-expense); color: #fff; }
@@ -69,12 +66,10 @@
     input, select { width: 100%; padding: 12px; margin-top: 5px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
     #amount { font-size: 28px; font-weight: bold; text-align: right; letter-spacing: 1px; padding: 15px; cursor: pointer; }
 
-    /* 📱 画面切り替え（タブパネル） */
     .app-page { display: none; animation: fadeIn 0.3s ease; }
     .app-page.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* 🏦 残高画面用のスタイル */
     .balance-total-box { text-align: center; padding: 15px 0; }
     .balance-total-box h4 { margin: 0; color: var(--text-sub); font-weight: normal; font-size: 14px; }
     .balance-total-box .total-val { font-size: 36px; font-weight: bold; color: var(--text-main); margin-top: 5px; font-family: monospace; }
@@ -92,21 +87,12 @@
     .btn-add-bank { width: 100%; padding: 12px; background: transparent; border: 1px dashed var(--border-color); color: var(--text-sub); border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; margin-top: 10px; transition: 0.2s; }
     .btn-add-bank:hover { border-color: var(--nav-active); color: var(--nav-active); }
 
-    /* ⚓ ボトムナビゲーションバー */
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
-      background: var(--nav-bg); border-top: 1px solid var(--border-color);
-      display: flex; z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-    }
-    .nav-tab {
-      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      color: var(--text-sub); font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; gap: 4px;
-    }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--nav-bg); border-top: 1px solid var(--border-color); display: flex; z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+    .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sub); font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; gap: 4px; }
     .nav-tab .icon { font-size: 20px; }
     .nav-tab.active { color: var(--nav-active); }
     body.theme-cyber .nav-tab.active { text-shadow: 0 0 8px #00ff66; }
 
-    /* 🧮 電卓ボトムキーボード */
     .bottom-numpad-container { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--numpad-panel-bg); border-top: 1px solid var(--border-color); z-index: 2000; box-sizing: border-box; padding: 10px 15px 25px 15px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94); box-shadow: 0 -5px 20px rgba(0,0,0,0.15); }
     .bottom-numpad-container.open { transform: translateY(0); }
     .numpad-header { display: flex; flex-direction: column; gap: 5px; padding-bottom: 8px; border-bottom: 1px solid rgba(128,128,128,0.2); margin-bottom: 10px; }
@@ -131,15 +117,23 @@
     .btn-primary { width: 100%; padding: 15px; margin-top: 25px; background-color: var(--accent-color); color: var(--accent-text); border: 1px solid var(--border-color); border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
     body.theme-cyber .btn-primary { box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); text-shadow: 0 0 5px #00ff66; }
     #message { text-align: center; margin-top: 15px; color: var(--accent-color); font-weight: bold; display: none; }
+
+    /* 💡 入力画面のインライン追加ボタン用スタイル */
+    .flex-row { display: flex; gap: 10px; align-items: center; }
+    .btn-success { background-color: var(--border-color); color: var(--text-main); border: none; padding: 10px 15px; border-radius: 8px; font-size: 14px; width: auto; margin-top: 5px; white-space: nowrap; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    body.theme-cyber .btn-success { border: 1px solid #00ff66; background: transparent; color: #00ff66; box-shadow: 0 0 8px rgba(0,255,102,0.2); }
+    .btn-success:active { transform: scale(0.95); }
   </style>
 </head>
 <body class="theme-default">
 
+  <!-- 🍔 ヘッダー -->
   <div class="app-header" id="appHeader" style="display: none;">
     <button class="menu-btn" id="menuBtn"><span></span><span></span><span></span></button>
     <div class="header-title" id="mainHeaderTitle">💸 支出・収入入力</div>
   </div>
 
+  <!-- 📱 フルスクリーンメニュー -->
   <div class="fullscreen-menu" id="fullMenu">
     <div class="menu-content">
       <div>
@@ -154,8 +148,9 @@
     </div>
   </div>
 
+  <!-- 🔒 認証画面 -->
   <div class="container auth-box" id="authScreen">
-    <h2>SYSTEM LOGIN</h2>
+    <h2 style="margin-top: 40px; margin-bottom: 20px;">SYSTEM LOGIN</h2>
     <form id="authForm">
       <input type="email" id="authEmail" name="username" autocomplete="username" placeholder="メールアドレス" required>
       <input type="password" id="authPassword" name="password" autocomplete="current-password" placeholder="パスワード" required>
@@ -164,6 +159,7 @@
     <p id="authToggle" style="margin-top: 20px; font-size: 14px; color: var(--text-sub); cursor: pointer; text-decoration: underline;">新規登録モードへ切り替え</p>
   </div>
 
+  <!-- 🟢 【ページ1】メイン入力フォーム -->
   <div id="page-input" class="container app-page">
     <div class="card">
       <div class="type-switcher">
@@ -174,11 +170,19 @@
       <label id="labelAmount">金額</label>
       <input type="text" id="amount" placeholder="¥ 0" readonly inputmode="none">
 
-      <label>カテゴリ</label>
-      <select id="category"></select>
+      <label>カテゴリ（収入源/用途）</label>
+      <div class="flex-row">
+        <select id="category" style="flex: 1; margin-top: 5px;"></select>
+        <!-- 💡 カテゴリ追加ボタン -->
+        <button type="button" class="btn-success" id="addCategoryBtn">＋ 追加</button>
+      </div>
 
-      <label id="labelMethod">支払い方法</label>
-      <select id="paymentMethod"></select>
+      <label id="labelMethod">支払い・受取先口座</label>
+      <div class="flex-row">
+        <select id="paymentMethod" style="flex: 1; margin-top: 5px;"></select>
+        <!-- 💡 銀行・口座追加ボタン -->
+        <button type="button" class="btn-success" id="addMethodBtnInline">＋ 追加</button>
+      </div>
 
       <label>メモ (任意)</label>
       <input type="text" id="memo" placeholder="コンビニコーヒー">
@@ -188,20 +192,20 @@
     </div>
   </div>
 
+  <!-- 🟢 【ページ2】残高確認・銀行口座管理画面 -->
   <div id="page-balance" class="container app-page">
     <div class="card balance-total-box">
       <h4>現在の総資産残高</h4>
       <div class="total-val" id="allAssetTotal">¥0</div>
     </div>
-    
     <div class="card">
       <p style="margin:0; font-size:13px; color:var(--text-sub); font-weight:bold;">口座・決済手段別の残高</p>
-      <div class="bank-list" id="bankListContainer">
-        </div>
-      <button class="btn-add-bank" id="addBankBtn">＋ 新しい銀行・口座を追加</button>
+      <div class="bank-list" id="bankListContainer"></div>
+      <button class="btn-add-bank" id="addBankBtnPage2">＋ 新しい銀行・口座を追加</button>
     </div>
   </div>
 
+  <!-- ⚓ ボトムナビゲーションバー -->
   <div class="bottom-nav" id="bottomNav" style="display: none;">
     <div class="nav-tab active" id="navTabInput" onclick="switchPage('input')">
       <div class="icon">✏️</div>
@@ -213,6 +217,7 @@
     </div>
   </div>
 
+  <!-- 🧮 電卓ボトムキーボード -->
   <div class="bottom-numpad-container" id="bottomNumpad">
     <div class="numpad-header">
       <div class="history-tape" id="historyTape"></div>
@@ -266,18 +271,17 @@
 
     let isSignUpMode = false;
     let currentDataType = "expense";
+    
+    // 💡 初期データの配列（Firestoreから読み込んで上書きされます）
     let currentMethods = ["現金", "EVERING", "クレジットカード", "郵カード", "Uカード", "住カード", "ぺいぺい"];
-
-    const expenseCategories = ["食費", "日用品", "交通費", "娯楽", "その他"];
-    const incomeCategories = ["給与", "バイト代", "お小遣い", "副収入", "その他"];
+    let expenseCategories = ["食費", "日用品", "交通費", "娯楽", "その他"];
+    let incomeCategories = ["給与", "バイト代", "お小遣い", "副収入", "その他"];
 
     let unsubscribeTransactions = null;
 
-    // 📱 ページ（画面）切り替えロジック
     window.switchPage = function(pageName) {
       document.querySelectorAll('.app-page').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-      
       if (pageName === 'input') {
         document.getElementById('page-input').classList.add('active');
         document.getElementById('navTabInput').classList.add('active');
@@ -289,11 +293,9 @@
       }
     };
 
-    // 🔄 収支タイプ切り替え
     window.switchType = function(type) {
       currentDataType = type;
-      const btnExpense = document.getElementById("btnExpense");
-      const btnIncome = document.getElementById("btnIncome");
+      const btnExpense = document.getElementById("btnExpense"); const btnIncome = document.getElementById("btnIncome");
       const catSelect = document.getElementById("category");
       catSelect.innerHTML = "";
       if (type === "expense") {
@@ -307,50 +309,31 @@
       }
     };
 
-    // 🧮 電卓制御
+    // 電卓制御
     const amountField = document.getElementById("amount"); const bottomNumpad = document.getElementById("bottomNumpad");
     const calcPreview = document.getElementById("calcPreview"); const historyTape = document.getElementById("historyTape");
     let currentVal = ""; let previousVal = ""; let operation = null; let shouldResetScreen = false;
     let amountHistory = JSON.parse(localStorage.getItem('kakeibo-history')) || [];
 
-    function updateDisplay() {
-      amountField.value = currentVal === "" ? "¥ 0" : "¥ " + Number(currentVal).toLocaleString();
-      calcPreview.innerText = operation ? `${Number(previousVal).toLocaleString()} ${operation} ${currentVal ? Number(currentVal).toLocaleString() : ''}` : "";
-    }
-    function renderHistory() {
-      historyTape.innerHTML = "";
-      amountHistory.forEach(val => {
-        const chip = document.createElement("div"); chip.className = "history-chip"; chip.innerText = "¥ " + Number(val).toLocaleString();
-        chip.onclick = () => { currentVal = val.toString(); operation = null; previousVal = ""; updateDisplay(); }; historyTape.appendChild(chip);
-      });
-    }
+    function updateDisplay() { amountField.value = currentVal === "" ? "¥ 0" : "¥ " + Number(currentVal).toLocaleString(); calcPreview.innerText = operation ? `${Number(previousVal).toLocaleString()} ${operation} ${currentVal ? Number(currentVal).toLocaleString() : ''}` : ""; }
+    function renderHistory() { historyTape.innerHTML = ""; amountHistory.forEach(val => { const chip = document.createElement("div"); chip.className = "history-chip"; chip.innerText = "¥ " + Number(val).toLocaleString(); chip.onclick = () => { currentVal = val.toString(); operation = null; previousVal = ""; updateDisplay(); }; historyTape.appendChild(chip); }); }
     renderHistory();
 
-    window.inputNum = function(num) {
-      if (shouldResetScreen) { currentVal = ""; shouldResetScreen = false; }
-      if (currentVal === "0" && num !== "0" && num !== "00") currentVal = "";
-      if (currentVal.length < 9) currentVal += num; updateDisplay();
-    };
+    window.inputNum = function(num) { if (shouldResetScreen) { currentVal = ""; shouldResetScreen = false; } if (currentVal === "0" && num !== "0" && num !== "00") currentVal = ""; if (currentVal.length < 9) currentVal += num; updateDisplay(); };
     window.chooseOp = function(op) { if (currentVal === "") return; if (previousVal !== "") compute(); operation = op; previousVal = currentVal; currentVal = ""; updateDisplay(); };
-    window.compute = function() {
-      let computation; const prev = parseFloat(previousVal); const current = parseFloat(currentVal);
-      if (isNaN(prev) || isNaN(current)) return;
-      switch (operation) { case '+': computation = prev + current; break; case '-': computation = prev - current; break; case '×': computation = prev * current; break; case '÷': computation = prev / current; break; default: return; }
-      currentVal = Math.floor(computation).toString(); operation = null; previousVal = ""; shouldResetScreen = true; updateDisplay();
-    };
+    window.compute = function() { let computation; const prev = parseFloat(previousVal); const current = parseFloat(currentVal); if (isNaN(prev) || isNaN(current)) return; switch (operation) { case '+': computation = prev + current; break; case '-': computation = prev - current; break; case '×': computation = prev * current; break; case '÷': computation = prev / current; break; default: return; } currentVal = Math.floor(computation).toString(); operation = null; previousVal = ""; shouldResetScreen = true; updateDisplay(); };
     window.addTax = function() { if (currentVal === "") return; currentVal = Math.floor(Number(currentVal) * 1.1).toString(); shouldResetScreen = true; updateDisplay(); };
     window.clearNum = function() { currentVal = ""; previousVal = ""; operation = null; updateDisplay(); };
     window.backspaceNum = function() { currentVal = currentVal.slice(0, -1); updateDisplay(); };
-
     amountField.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); amountField.blur(); bottomNumpad.classList.add("open"); });
     window.closeNumpad = function() { bottomNumpad.classList.remove("open"); };
     document.addEventListener("click", (e) => { if (!bottomNumpad.contains(e.target) && e.target !== amountField) closeNumpad(); });
 
-    // 🎨 テーマ
+    // テーマ設定
     const savedTheme = localStorage.getItem('kakeibo-theme') || 'theme-default'; document.body.className = savedTheme;
     window.changeTheme = function(themeName) { document.body.className = themeName; localStorage.setItem('kakeibo-theme', themeName); toggleMenu(); };
 
-    // 🍔 メニュー
+    // ハンバーガーメニュー
     const menuBtn = document.getElementById('menuBtn'); const fullMenu = document.getElementById('fullMenu');
     function toggleMenu() { menuBtn.classList.toggle('open'); fullMenu.classList.toggle('open'); }
     menuBtn.addEventListener('click', toggleMenu);
@@ -360,50 +343,21 @@
       currentMethods.forEach(method => { const opt = document.createElement("option"); opt.value = method; opt.innerText = method; select.appendChild(opt); });
     }
 
-    // 💡 リアルタイム残高計算 & 表示システム
     function startRealtimeBalanceSync(uid) {
       const q = query(collection(db, "transactions"), where("userId", "==", uid));
       unsubscribeTransactions = onSnapshot(q, (snapshot) => {
-        const balances = {};
-        let grandTotal = 0;
-
-        // すべての登録口座を0で初期化
+        const balances = {}; let grandTotal = 0;
         currentMethods.forEach(m => balances[m] = 0);
-
         snapshot.forEach(doc => {
-          const data = doc.data();
-          const amount = data.amount || 0;
-          const type = data.type || "expense";
-          const method = data.paymentMethod;
-
+          const data = doc.data(); const amount = data.amount || 0; const type = data.type || "expense"; const method = data.paymentMethod;
           if (!balances[method]) balances[method] = 0;
-
-          if (type === "income") {
-            balances[method] += amount;
-            grandTotal += amount;
-          } else {
-            balances[method] -= amount;
-            grandTotal -= amount;
-          }
+          if (type === "income") { balances[method] += amount; grandTotal += amount; } else { balances[method] -= amount; grandTotal -= amount; }
         });
-
-        // 総残高の描画
         document.getElementById("allAssetTotal").innerText = "¥ " + grandTotal.toLocaleString();
-
-        // 口座別リストの描画
-        const container = document.getElementById("bankListContainer");
-        container.innerHTML = "";
-        
+        const container = document.getElementById("bankListContainer"); container.innerHTML = "";
         Object.keys(balances).forEach(name => {
-          const bal = balances[name];
-          const signClass = bal >= 0 ? "plus" : "minus";
-          
-          container.innerHTML += `
-            <div class="bank-item">
-              <span class="bank-name">${name}</span>
-              <span class="bank-balance ${signClass}">¥ ${bal.toLocaleString()}</span>
-            </div>
-          `;
+          const bal = balances[name]; const signClass = bal >= 0 ? "plus" : "minus";
+          container.innerHTML += `<div class="bank-item"><span class="bank-name">${name}</span><span class="bank-balance ${signClass}">¥ ${bal.toLocaleString()}</span></div>`;
         });
       });
     }
@@ -416,22 +370,24 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        document.getElementById("authScreen").style.display = "none";
-        document.getElementById("appHeader").style.display = "flex";
-        document.getElementById("bottomNav").style.display = "flex";
+        document.getElementById("authScreen").style.display = "none"; document.getElementById("appHeader").style.display = "flex"; document.getElementById("bottomNav").style.display = "flex";
         
+        // 💡 ユーザーのカスタム設定（銀行リスト、支出カテゴリ、収入カテゴリ）をロード
         const userRef = doc(db, "user_settings", user.uid); const snap = await getDoc(userRef);
-        if (snap.exists() && snap.data().paymentMethods) { currentMethods = snap.data().paymentMethods; } 
-        else { await setDoc(userRef, { paymentMethods: currentMethods }, { merge: true }); }
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.paymentMethods) currentMethods = data.paymentMethods;
+          if (data.expenseCategories) expenseCategories = data.expenseCategories;
+          if (data.incomeCategories) incomeCategories = data.incomeCategories;
+        } else {
+          // 初回ログイン時はデフォルト配列を保存
+          await setDoc(userRef, { paymentMethods: currentMethods, expenseCategories: expenseCategories, incomeCategories: incomeCategories }, { merge: true });
+        }
         
-        renderMethods(); switchType("expense"); switchPage("input"); clearNum();
-        startRealtimeBalanceSync(user.uid); // 残高同期の開始
+        renderMethods(); switchType("expense"); switchPage("input"); clearNum(); startRealtimeBalanceSync(user.uid);
       } else {
-        document.getElementById("authScreen").style.display = "block";
-        document.getElementById("appHeader").style.display = "none";
-        document.getElementById("bottomNav").style.display = "none";
-        document.getElementById("page-input").style.display = "none";
-        document.getElementById("page-balance").style.display = "none";
+        document.getElementById("authScreen").style.display = "block"; document.getElementById("appHeader").style.display = "none"; document.getElementById("bottomNav").style.display = "none";
+        document.getElementById("page-input").style.display = "none"; document.getElementById("page-balance").style.display = "none";
         if (unsubscribeTransactions) unsubscribeTransactions();
       }
     });
@@ -442,8 +398,33 @@
     });
     document.getElementById("logoutLink").addEventListener("click", () => { toggleMenu(); signOut(auth); });
 
-    // 💡 新しい銀行・口座を追加する処理（初期残高設定つき！）
-    document.getElementById("addBankBtn").addEventListener("click", async () => {
+    // 💡【新機能】カテゴリを直接追加するロジック
+    document.getElementById("addCategoryBtn").addEventListener("click", async () => {
+      const isExpense = currentDataType === "expense";
+      const newCat = prompt(`新しい${isExpense ? '支出' : '収入'}カテゴリを入力してね！\n例: ${isExpense ? 'サブスク, カフェ' : 'メルカリ売上, ボーナス'}`);
+      
+      if (newCat && newCat.trim() !== "") {
+        const trimmed = newCat.trim();
+        const targetArray = isExpense ? expenseCategories : incomeCategories;
+        
+        if (!targetArray.includes(trimmed)) {
+          targetArray.push(trimmed);
+          switchType(currentDataType); // プルダウンを再描画
+          document.getElementById("category").value = trimmed; // 今追加したものを自動選択
+          
+          const user = auth.currentUser;
+          if (user) {
+            await setDoc(doc(db, "user_settings", user.uid), {
+              expenseCategories: expenseCategories,
+              incomeCategories: incomeCategories
+            }, { merge: true });
+          }
+        } else { alert("そのカテゴリはすでに登録されているよ！"); }
+      }
+    });
+
+    // 💡 銀行・口座を追加する共通ロジック
+    const handleAddBank = async () => {
       const newBank = prompt("新しく追加する銀行・口座名を入力してね！\n例: 三井住友銀行, 楽天Pay");
       if (newBank && newBank.trim() !== "") {
         const trimmed = newBank.trim();
@@ -454,25 +435,22 @@
 
         currentMethods.push(trimmed);
         renderMethods();
+        document.getElementById("paymentMethod").value = trimmed; // 入力画面側のセレクトを自動合わせる
 
         const user = auth.currentUser;
         if (user) {
-          // 1. 口座リストを更新
           await setDoc(doc(db, "user_settings", user.uid), { paymentMethods: currentMethods }, { merge: true });
-          
-          // 2. 初期残高が0より大きければ、自動で「収入」として突っ込んで残高を合わせる！
           if (initialBalance && initialBalance > 0) {
-            await addDoc(collection(db, "transactions"), {
-              amount: initialBalance, category: "その他", type: "income",
-              paymentMethod: trimmed, memo: "初期残高設定", date: new Date(), userId: user.uid
-            });
+            await addDoc(collection(db, "transactions"), { amount: initialBalance, category: "その他", type: "income", paymentMethod: trimmed, memo: "初期残高設定", date: new Date(), userId: user.uid });
           }
-          alert(`「${trimmed}」を初期残高 ¥${initialBalance.toLocaleString()} で登録したよ！`);
+          alert(`「${trimmed}」を追加しました！`);
         }
       }
-    });
+    };
+    
+    document.getElementById("addMethodBtnInline").addEventListener("click", handleAddBank);
+    document.getElementById("addBankBtnPage2").addEventListener("click", handleAddBank);
 
-    // データ送信
     document.getElementById("submitBtn").addEventListener("click", async () => {
       if (operation !== null) compute(); const amount = Number(currentVal);
       const category = document.getElementById("category").value; const paymentMethod = document.getElementById("paymentMethod").value; const memo = document.getElementById("memo").value;
