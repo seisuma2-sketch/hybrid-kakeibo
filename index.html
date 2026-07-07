@@ -117,8 +117,6 @@
     .btn-primary { width: 100%; padding: 15px; margin-top: 25px; background-color: var(--accent-color); color: var(--accent-text); border: 1px solid var(--border-color); border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
     body.theme-cyber .btn-primary { box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); text-shadow: 0 0 5px #00ff66; }
     #message { text-align: center; margin-top: 15px; color: var(--accent-color); font-weight: bold; display: none; }
-
-    /* 💡 入力画面のインライン追加ボタン用スタイル */
     .flex-row { display: flex; gap: 10px; align-items: center; }
     .btn-success { background-color: var(--border-color); color: var(--text-main); border: none; padding: 10px 15px; border-radius: 8px; font-size: 14px; width: auto; margin-top: 5px; white-space: nowrap; font-weight: bold; cursor: pointer; transition: 0.2s; }
     body.theme-cyber .btn-success { border: 1px solid #00ff66; background: transparent; color: #00ff66; box-shadow: 0 0 8px rgba(0,255,102,0.2); }
@@ -166,27 +164,20 @@
         <div class="switch-btn active expense" id="btnExpense" onclick="switchType('expense')">支出</div>
         <div class="switch-btn income" id="btnIncome" onclick="switchType('income')">収入</div>
       </div>
-
       <label id="labelAmount">金額</label>
       <input type="text" id="amount" placeholder="¥ 0" readonly inputmode="none">
-
       <label>カテゴリ（収入源/用途）</label>
       <div class="flex-row">
         <select id="category" style="flex: 1; margin-top: 5px;"></select>
-        <!-- 💡 カテゴリ追加ボタン -->
         <button type="button" class="btn-success" id="addCategoryBtn">＋ 追加</button>
       </div>
-
       <label id="labelMethod">支払い・受取先口座</label>
       <div class="flex-row">
         <select id="paymentMethod" style="flex: 1; margin-top: 5px;"></select>
-        <!-- 💡 銀行・口座追加ボタン -->
         <button type="button" class="btn-success" id="addMethodBtnInline">＋ 追加</button>
       </div>
-
       <label>メモ (任意)</label>
       <input type="text" id="memo" placeholder="コンビニコーヒー">
-
       <button id="submitBtn" class="btn-primary">記録する</button>
       <p id="message">保存完了！</p>
     </div>
@@ -208,12 +199,10 @@
   <!-- ⚓ ボトムナビゲーションバー -->
   <div class="bottom-nav" id="bottomNav" style="display: none;">
     <div class="nav-tab active" id="navTabInput" onclick="switchPage('input')">
-      <div class="icon">✏️</div>
-      <div>入力</div>
+      <div class="icon">✏️</div><div>入力</div>
     </div>
     <div class="nav-tab" id="navTabBalance" onclick="switchPage('balance')">
-      <div class="icon">🏦</div>
-      <div>残高一覧</div>
+      <div class="icon">🏦</div><div>残高一覧</div>
     </div>
   </div>
 
@@ -254,7 +243,6 @@
     import { getFirestore, collection, addDoc, doc, setDoc, getDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-    // ⚠️ ここは本物の config に書き換えてね！ ⚠️
     const firebaseConfig = {
   apiKey: "AIzaSyB5UE_wkcBoBsaGo0warU40csxJAWi73-I",
   authDomain: "hybrid-kakeibo.firebaseapp.com",
@@ -265,60 +253,31 @@
   measurementId: "G-5SV54CHL1W"
 };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
-    let isSignUpMode = false;
-    let currentDataType = "expense";
-    
-    // 💡 初期データの配列（Firestoreから読み込んで上書きされます）
+    const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
+    let isSignUpMode = false; let currentDataType = "expense";
     let currentMethods = ["現金", "EVERING", "クレジットカード", "郵カード", "Uカード", "住カード", "ぺいぺい"];
     let expenseCategories = ["食費", "日用品", "交通費", "娯楽", "その他"];
     let incomeCategories = ["給与", "バイト代", "お小遣い", "副収入", "その他"];
-
     let unsubscribeTransactions = null;
+    
+    // 💡 PCで設定したステルス対象を受け取る変数
+    let stealthTargets = { methods: [], categories: [] };
 
     window.switchPage = function(pageName) {
-      document.querySelectorAll('.app-page').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-      if (pageName === 'input') {
-        document.getElementById('page-input').classList.add('active');
-        document.getElementById('navTabInput').classList.add('active');
-        document.getElementById('mainHeaderTitle').innerText = "💸 支出・収入入力";
-      } else {
-        document.getElementById('page-balance').classList.add('active');
-        document.getElementById('navTabBalance').classList.add('active');
-        document.getElementById('mainHeaderTitle').innerText = "🏦 残高・口座一覧";
-      }
+      document.querySelectorAll('.app-page').forEach(el => el.classList.remove('active')); document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+      if (pageName === 'input') { document.getElementById('page-input').classList.add('active'); document.getElementById('navTabInput').classList.add('active'); document.getElementById('mainHeaderTitle').innerText = "💸 支出・収入入力"; } else { document.getElementById('page-balance').classList.add('active'); document.getElementById('navTabBalance').classList.add('active'); document.getElementById('mainHeaderTitle').innerText = "🏦 残高・口座一覧"; }
     };
 
     window.switchType = function(type) {
-      currentDataType = type;
-      const btnExpense = document.getElementById("btnExpense"); const btnIncome = document.getElementById("btnIncome");
-      const catSelect = document.getElementById("category");
-      catSelect.innerHTML = "";
-      if (type === "expense") {
-        btnExpense.classList.add("active"); btnIncome.classList.remove("active");
-        document.getElementById("labelAmount").innerText = "金額"; document.getElementById("labelMethod").innerText = "支払い方法";
-        expenseCategories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
-      } else {
-        btnIncome.classList.add("active"); btnExpense.classList.remove("active");
-        document.getElementById("labelAmount").innerText = "収入金額"; document.getElementById("labelMethod").innerText = "受取先・口座";
-        incomeCategories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
-      }
+      currentDataType = type; const btnExpense = document.getElementById("btnExpense"); const btnIncome = document.getElementById("btnIncome"); const catSelect = document.getElementById("category"); catSelect.innerHTML = "";
+      if (type === "expense") { btnExpense.classList.add("active"); btnIncome.classList.remove("active"); document.getElementById("labelAmount").innerText = "金額"; document.getElementById("labelMethod").innerText = "支払い方法"; expenseCategories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`); } else { btnIncome.classList.add("active"); btnExpense.classList.remove("active"); document.getElementById("labelAmount").innerText = "収入金額"; document.getElementById("labelMethod").innerText = "受取先・口座"; incomeCategories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`); }
     };
 
-    // 電卓制御
-    const amountField = document.getElementById("amount"); const bottomNumpad = document.getElementById("bottomNumpad");
-    const calcPreview = document.getElementById("calcPreview"); const historyTape = document.getElementById("historyTape");
-    let currentVal = ""; let previousVal = ""; let operation = null; let shouldResetScreen = false;
-    let amountHistory = JSON.parse(localStorage.getItem('kakeibo-history')) || [];
-
+    const amountField = document.getElementById("amount"); const bottomNumpad = document.getElementById("bottomNumpad"); const calcPreview = document.getElementById("calcPreview"); const historyTape = document.getElementById("historyTape");
+    let currentVal = ""; let previousVal = ""; let operation = null; let shouldResetScreen = false; let amountHistory = JSON.parse(localStorage.getItem('kakeibo-history')) || [];
     function updateDisplay() { amountField.value = currentVal === "" ? "¥ 0" : "¥ " + Number(currentVal).toLocaleString(); calcPreview.innerText = operation ? `${Number(previousVal).toLocaleString()} ${operation} ${currentVal ? Number(currentVal).toLocaleString() : ''}` : ""; }
     function renderHistory() { historyTape.innerHTML = ""; amountHistory.forEach(val => { const chip = document.createElement("div"); chip.className = "history-chip"; chip.innerText = "¥ " + Number(val).toLocaleString(); chip.onclick = () => { currentVal = val.toString(); operation = null; previousVal = ""; updateDisplay(); }; historyTape.appendChild(chip); }); }
     renderHistory();
-
     window.inputNum = function(num) { if (shouldResetScreen) { currentVal = ""; shouldResetScreen = false; } if (currentVal === "0" && num !== "0" && num !== "00") currentVal = ""; if (currentVal.length < 9) currentVal += num; updateDisplay(); };
     window.chooseOp = function(op) { if (currentVal === "") return; if (previousVal !== "") compute(); operation = op; previousVal = currentVal; currentVal = ""; updateDisplay(); };
     window.compute = function() { let computation; const prev = parseFloat(previousVal); const current = parseFloat(currentVal); if (isNaN(prev) || isNaN(current)) return; switch (operation) { case '+': computation = prev + current; break; case '-': computation = prev - current; break; case '×': computation = prev * current; break; case '÷': computation = prev / current; break; default: return; } currentVal = Math.floor(computation).toString(); operation = null; previousVal = ""; shouldResetScreen = true; updateDisplay(); };
@@ -326,140 +285,105 @@
     window.clearNum = function() { currentVal = ""; previousVal = ""; operation = null; updateDisplay(); };
     window.backspaceNum = function() { currentVal = currentVal.slice(0, -1); updateDisplay(); };
     amountField.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); amountField.blur(); bottomNumpad.classList.add("open"); });
-    window.closeNumpad = function() { bottomNumpad.classList.remove("open"); };
-    document.addEventListener("click", (e) => { if (!bottomNumpad.contains(e.target) && e.target !== amountField) closeNumpad(); });
+    window.closeNumpad = function() { bottomNumpad.classList.remove("open"); }; document.addEventListener("click", (e) => { if (!bottomNumpad.contains(e.target) && e.target !== amountField) closeNumpad(); });
 
-    // テーマ設定
     const savedTheme = localStorage.getItem('kakeibo-theme') || 'theme-default'; document.body.className = savedTheme;
     window.changeTheme = function(themeName) { document.body.className = themeName; localStorage.setItem('kakeibo-theme', themeName); toggleMenu(); };
-
-    // ハンバーガーメニュー
     const menuBtn = document.getElementById('menuBtn'); const fullMenu = document.getElementById('fullMenu');
-    function toggleMenu() { menuBtn.classList.toggle('open'); fullMenu.classList.toggle('open'); }
-    menuBtn.addEventListener('click', toggleMenu);
+    function toggleMenu() { menuBtn.classList.toggle('open'); fullMenu.classList.toggle('open'); } menuBtn.addEventListener('click', toggleMenu);
+    function renderMethods() { const select = document.getElementById("paymentMethod"); select.innerHTML = ""; currentMethods.forEach(method => { const opt = document.createElement("option"); opt.value = method; opt.innerText = method; select.appendChild(opt); }); }
 
-    function renderMethods() {
-      const select = document.getElementById("paymentMethod"); select.innerHTML = "";
-      currentMethods.forEach(method => { const opt = document.createElement("option"); opt.value = method; opt.innerText = method; select.appendChild(opt); });
-    }
-
+    // 💡 リアルタイム残高計算（スマホでもステルス設定を反映！）
     function startRealtimeBalanceSync(uid) {
       const q = query(collection(db, "transactions"), where("userId", "==", uid));
       unsubscribeTransactions = onSnapshot(q, (snapshot) => {
         const balances = {}; let grandTotal = 0;
         currentMethods.forEach(m => balances[m] = 0);
+        
         snapshot.forEach(doc => {
-          const data = doc.data(); const amount = data.amount || 0; const type = data.type || "expense"; const method = data.paymentMethod;
+          const data = doc.data(); const amount = data.amount || 0; const type = data.type || "expense"; const method = data.paymentMethod; const category = data.category;
+          
+          // 💡 ステルス対象に設定された口座やカテゴリは、スマホの残高計算から「存在しなかったこと」にして完全にスキップ！
+          const isTarget = (stealthTargets.methods || []).includes(method) || (stealthTargets.categories || []).includes(category);
+          if (isTarget) return; 
+
           if (!balances[method]) balances[method] = 0;
           if (type === "income") { balances[method] += amount; grandTotal += amount; } else { balances[method] -= amount; grandTotal -= amount; }
         });
+        
         document.getElementById("allAssetTotal").innerText = "¥ " + grandTotal.toLocaleString();
         const container = document.getElementById("bankListContainer"); container.innerHTML = "";
+        
         Object.keys(balances).forEach(name => {
+          // 💡 ステルス対象の口座は、スマホのリスト自体からも完全に非表示にする！
+          if ((stealthTargets.methods || []).includes(name)) return;
+          
           const bal = balances[name]; const signClass = bal >= 0 ? "plus" : "minus";
           container.innerHTML += `<div class="bank-item"><span class="bank-name">${name}</span><span class="bank-balance ${signClass}">¥ ${bal.toLocaleString()}</span></div>`;
         });
       });
     }
 
-    document.getElementById("authToggle").addEventListener("click", (e) => {
-      isSignUpMode = !isSignUpMode;
-      e.target.innerText = isSignUpMode ? "ログイン画面へ戻る" : "新規登録モードへ切り替え";
-      document.querySelector("#authForm button").innerText = isSignUpMode ? "新規登録" : "ログイン";
-    });
+    document.getElementById("authToggle").addEventListener("click", (e) => { isSignUpMode = !isSignUpMode; e.target.innerText = isSignUpMode ? "ログイン画面へ戻る" : "新規登録モードへ切り替え"; document.querySelector("#authForm button").innerText = isSignUpMode ? "新規登録" : "ログイン"; });
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         document.getElementById("authScreen").style.display = "none"; document.getElementById("appHeader").style.display = "flex"; document.getElementById("bottomNav").style.display = "flex";
         
-        // 💡 ユーザーのカスタム設定（銀行リスト、支出カテゴリ、収入カテゴリ）をロード
         const userRef = doc(db, "user_settings", user.uid); const snap = await getDoc(userRef);
         if (snap.exists()) {
           const data = snap.data();
           if (data.paymentMethods) currentMethods = data.paymentMethods;
           if (data.expenseCategories) expenseCategories = data.expenseCategories;
           if (data.incomeCategories) incomeCategories = data.incomeCategories;
+          // 💡 クラウドからステルス設定を受け取る
+          if (data.stealthTargets) stealthTargets = data.stealthTargets;
         } else {
-          // 初回ログイン時はデフォルト配列を保存
           await setDoc(userRef, { paymentMethods: currentMethods, expenseCategories: expenseCategories, incomeCategories: incomeCategories }, { merge: true });
         }
         
         renderMethods(); switchType("expense"); switchPage("input"); clearNum(); startRealtimeBalanceSync(user.uid);
       } else {
-        document.getElementById("authScreen").style.display = "block"; document.getElementById("appHeader").style.display = "none"; document.getElementById("bottomNav").style.display = "none";
-        document.getElementById("page-input").style.display = "none"; document.getElementById("page-balance").style.display = "none";
+        document.getElementById("authScreen").style.display = "block"; document.getElementById("appHeader").style.display = "none"; document.getElementById("bottomNav").style.display = "none"; document.getElementById("page-input").style.display = "none"; document.getElementById("page-balance").style.display = "none";
         if (unsubscribeTransactions) unsubscribeTransactions();
       }
     });
 
-    document.getElementById("authForm").addEventListener("submit", async (e) => {
-      e.preventDefault(); const email = document.getElementById("authEmail").value; const password = document.getElementById("authPassword").value;
-      try { if (isSignUpMode) { await createUserWithEmailAndPassword(auth, email, password); } else { await signInWithEmailAndPassword(auth, email, password); } } catch (error) { alert(`エラー: ${error.message}`); }
-    });
+    document.getElementById("authForm").addEventListener("submit", async (e) => { e.preventDefault(); const email = document.getElementById("authEmail").value; const password = document.getElementById("authPassword").value; try { if (isSignUpMode) { await createUserWithEmailAndPassword(auth, email, password); } else { await signInWithEmailAndPassword(auth, email, password); } } catch (error) { alert(`エラー: ${error.message}`); } });
     document.getElementById("logoutLink").addEventListener("click", () => { toggleMenu(); signOut(auth); });
 
-    // 💡【新機能】カテゴリを直接追加するロジック
     document.getElementById("addCategoryBtn").addEventListener("click", async () => {
-      const isExpense = currentDataType === "expense";
-      const newCat = prompt(`新しい${isExpense ? '支出' : '収入'}カテゴリを入力してね！\n例: ${isExpense ? 'サブスク, カフェ' : 'メルカリ売上, ボーナス'}`);
-      
+      const isExpense = currentDataType === "expense"; const newCat = prompt(`新しい${isExpense ? '支出' : '収入'}カテゴリを入力してね！\n例: ${isExpense ? 'サブスク, カフェ' : 'メルカリ売上, ボーナス'}`);
       if (newCat && newCat.trim() !== "") {
-        const trimmed = newCat.trim();
-        const targetArray = isExpense ? expenseCategories : incomeCategories;
-        
-        if (!targetArray.includes(trimmed)) {
-          targetArray.push(trimmed);
-          switchType(currentDataType); // プルダウンを再描画
-          document.getElementById("category").value = trimmed; // 今追加したものを自動選択
-          
-          const user = auth.currentUser;
-          if (user) {
-            await setDoc(doc(db, "user_settings", user.uid), {
-              expenseCategories: expenseCategories,
-              incomeCategories: incomeCategories
-            }, { merge: true });
-          }
-        } else { alert("そのカテゴリはすでに登録されているよ！"); }
+        const trimmed = newCat.trim(); const targetArray = isExpense ? expenseCategories : incomeCategories;
+        if (!targetArray.includes(trimmed)) { targetArray.push(trimmed); switchType(currentDataType); document.getElementById("category").value = trimmed; 
+          if (auth.currentUser) await setDoc(doc(db, "user_settings", auth.currentUser.uid), { expenseCategories: expenseCategories, incomeCategories: incomeCategories }, { merge: true });
+        } else { alert("すでに登録されているよ！"); }
       }
     });
 
-    // 💡 銀行・口座を追加する共通ロジック
     const handleAddBank = async () => {
-      const newBank = prompt("新しく追加する銀行・口座名を入力してね！\n例: 三井住友銀行, 楽天Pay");
+      const newBank = prompt("新しく追加する銀行・口座名を入力してね！");
       if (newBank && newBank.trim() !== "") {
-        const trimmed = newBank.trim();
-        if (currentMethods.includes(trimmed)) { alert("その口座はすでに登録されているよ！"); return; }
-
-        const initialBalanceStr = prompt(`「${trimmed}」の現在のリアル残高（スタート金額）を入力してね！\nなければ 0 でOK！`);
-        const initialBalance = Number(initialBalanceStr);
-
-        currentMethods.push(trimmed);
-        renderMethods();
-        document.getElementById("paymentMethod").value = trimmed; // 入力画面側のセレクトを自動合わせる
-
-        const user = auth.currentUser;
-        if (user) {
-          await setDoc(doc(db, "user_settings", user.uid), { paymentMethods: currentMethods }, { merge: true });
-          if (initialBalance && initialBalance > 0) {
-            await addDoc(collection(db, "transactions"), { amount: initialBalance, category: "その他", type: "income", paymentMethod: trimmed, memo: "初期残高設定", date: new Date(), userId: user.uid });
-          }
+        const trimmed = newBank.trim(); if (currentMethods.includes(trimmed)) { alert("すでに登録されているよ！"); return; }
+        const initialBalance = Number(prompt(`「${trimmed}」の現在のリアル残高（スタート金額）を入力してね！\nなければ 0 でOK！`));
+        currentMethods.push(trimmed); renderMethods(); document.getElementById("paymentMethod").value = trimmed; 
+        if (auth.currentUser) {
+          await setDoc(doc(db, "user_settings", auth.currentUser.uid), { paymentMethods: currentMethods }, { merge: true });
+          if (initialBalance && initialBalance > 0) await addDoc(collection(db, "transactions"), { amount: initialBalance, category: "その他", type: "income", paymentMethod: trimmed, memo: "初期残高設定", date: new Date(), userId: auth.currentUser.uid });
           alert(`「${trimmed}」を追加しました！`);
         }
       }
     };
-    
-    document.getElementById("addMethodBtnInline").addEventListener("click", handleAddBank);
-    document.getElementById("addBankBtnPage2").addEventListener("click", handleAddBank);
+    document.getElementById("addMethodBtnInline").addEventListener("click", handleAddBank); document.getElementById("addBankBtnPage2").addEventListener("click", handleAddBank);
 
     document.getElementById("submitBtn").addEventListener("click", async () => {
-      if (operation !== null) compute(); const amount = Number(currentVal);
-      const category = document.getElementById("category").value; const paymentMethod = document.getElementById("paymentMethod").value; const memo = document.getElementById("memo").value;
+      if (operation !== null) compute(); const amount = Number(currentVal); const category = document.getElementById("category").value; const paymentMethod = document.getElementById("paymentMethod").value; const memo = document.getElementById("memo").value;
       if (!amount || amount === 0) { alert("金額を入力してね！"); return; }
       try {
         await addDoc(collection(db, "transactions"), { amount: amount, category: category, type: currentDataType, paymentMethod: paymentMethod, memo: memo, date: new Date(), userId: auth.currentUser.uid });
         amountHistory.unshift(amount); if (amountHistory.length > 5) amountHistory.pop(); localStorage.setItem('kakeibo-history', JSON.stringify(amountHistory)); renderHistory();
-        document.getElementById("message").style.display = "block"; clearNum(); document.getElementById("memo").value = "";
-        setTimeout(() => { document.getElementById("message").style.display = "none"; }, 3000);
+        document.getElementById("message").style.display = "block"; clearNum(); document.getElementById("memo").value = ""; setTimeout(() => { document.getElementById("message").style.display = "none"; }, 3000);
       } catch (error) { alert("保存に失敗しました。"); }
     });
   </script>
