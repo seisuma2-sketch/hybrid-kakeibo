@@ -16,9 +16,12 @@
       --accent-color: #007bff;
       --accent-text: #ffffff;
       --menu-bg: rgba(255, 255, 255, 0.95);
+      --numpad-panel-bg: #f1f3f5;
+      --numpad-btn-bg: #ffffff;
+      --numpad-btn-active: #e9ecef;
     }
     
-    /* 🟩 サイバーネオンテーマ (黒×緑オンリー) */
+    /* 🟩 サイバーネオンテーマ (黒×緑) */
     body.theme-cyber {
       --bg-color: #050505;
       --container-bg: #0a0a0a;
@@ -29,9 +32,12 @@
       --accent-color: #000000;
       --accent-text: #00ff66;
       --menu-bg: rgba(5, 5, 5, 0.95);
+      --numpad-panel-bg: #080808;
+      --numpad-btn-bg: #000000;
+      --numpad-btn-active: #00220a;
     }
 
-    /* 🌊 ディープオーシャンテテーマ (深海ブルー) */
+    /* 🌊 ディープオーシャンテーマ (深海ブルー) */
     body.theme-ocean {
       --bg-color: #020b14;
       --container-bg: #06192e;
@@ -42,6 +48,9 @@
       --accent-color: #00b4d8;
       --accent-text: #020b14;
       --menu-bg: rgba(6, 25, 46, 0.95);
+      --numpad-panel-bg: #010d1a;
+      --numpad-btn-bg: #01162c;
+      --numpad-btn-active: #01284f;
     }
 
     /* 共通スタイル */
@@ -50,32 +59,22 @@
     .app-header { display: flex; align-items: center; justify-content: center; padding: 15px; position: relative; }
     .header-title { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
     
-    /* 🍔 ハンバーガーメニューボタン */
-    .menu-btn {
-      position: absolute; left: 15px; top: 15px; z-index: 1001;
-      background: none; border: none; cursor: pointer; padding: 5px;
-      display: flex; flex-direction: column; gap: 5px;
-    }
+    /* 🍔 ハンバーガーメニュー */
+    .menu-btn { position: absolute; left: 15px; top: 15px; z-index: 1001; background: none; border: none; cursor: pointer; padding: 5px; display: flex; flex-direction: column; gap: 5px; }
     .menu-btn span { display: block; width: 25px; height: 3px; background-color: var(--text-main); border-radius: 3px; transition: 0.3s; }
-    
-    /* メニュー開いた時の✕印アニメーション */
     .menu-btn.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
     .menu-btn.open span:nth-child(2) { opacity: 0; }
     .menu-btn.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
 
-    /* 📱 フルスクリーンメニュー（サークルリビールアニメーション） */
+    /* 📱 フルスクリーンメニュー */
     .fullscreen-menu {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background-color: var(--menu-bg); backdrop-filter: blur(10px);
-      z-index: 1000;
-      /* 魔法のアニメーション：左上を起点に円形に隠す/広げる */
-      clip-path: circle(0px at 25px 25px);
-      transition: clip-path 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      background-color: var(--menu-bg); backdrop-filter: blur(10px); z-index: 1000;
+      clip-path: circle(0px at 25px 25px); transition: clip-path 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
     .fullscreen-menu.open { clip-path: circle(150% at 25px 25px); }
     
-    /* メニュー内の項目 */
     .menu-content { display: flex; flex-direction: column; gap: 30px; text-align: center; opacity: 0; transform: translateY(20px); transition: 0.3s; transition-delay: 0s; }
     .fullscreen-menu.open .menu-content { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
     .menu-item { background: none; border: none; color: var(--text-main); font-size: 20px; font-weight: bold; padding: 10px; cursor: pointer; }
@@ -86,8 +85,8 @@
     .theme-circle.t-ocean { background: #06192e; border-color: #00b4d8; }
 
     /* メインコンテナ */
-    .container { padding: 20px; max-width: 400px; margin: 0 auto; }
-    .card { background: var(--container-bg); padding: 25px 20px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
+    .container { padding: 15px; max-width: 400px; margin: 0 auto; padding-bottom: 60px; }
+    .card { background: var(--container-bg); padding: 20px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
     
     label { display: block; margin-top: 15px; font-weight: bold; color: var(--text-sub); font-size: 13px; }
     input, select {
@@ -97,15 +96,43 @@
     }
     input:focus, select:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); }
     
-    .btn-primary {
-      width: 100%; padding: 15px; margin-top: 25px;
-      background-color: var(--accent-color); color: var(--accent-text);
-      border: 1px solid var(--border-color); border-radius: 8px;
-      font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s;
+    /* 金額入力欄 */
+    #amount { font-size: 24px; font-weight: bold; text-align: right; letter-spacing: 1px; padding: 12px; cursor: pointer; }
+
+    /* 🧮 下からせり上がるボトムシート型電卓キーボード */
+    .bottom-numpad-container {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background: var(--numpad-panel-bg); border-top: 1px solid var(--border-color);
+      z-index: 2000; box-sizing: border-box; padding: 10px 15px 25px 15px;
+      /* 💡 最初は画面の下に隠しておく */
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94);
+      box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
     }
+    /* このクラスがつくと下からヌルッと出てくる */
+    .bottom-numpad-container.open { transform: translateY(0); }
+
+    /* 電卓のヘッダー（確定ボタンとかを置くバー） */
+    .numpad-header { display: flex; justify-content: flex-end; padding-bottom: 8px; border-bottom: 1px solid rgba(128,128,128,0.2); margin-bottom: 10px; }
+    .numpad-close-btn { background: transparent; border: none; color: var(--text-main); font-size: 16px; font-weight: bold; cursor: pointer; padding: 5px 10px; }
+    body.theme-cyber .numpad-close-btn { color: #00ff66; text-shadow: 0 0 5px #00ff66; }
+
+    /* 電卓のグリッド */
+    .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 400px; margin: 0 auto; }
+    .numpad-btn {
+      background: var(--numpad-btn-bg); color: var(--text-main); border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 14px; font-size: 22px; font-weight: bold; font-family: 'Courier New', Courier, monospace;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.1s, transform 0.1s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .numpad-btn:active { background: var(--numpad-btn-active); transform: scale(0.96); }
+    body.theme-cyber .numpad-btn { box-shadow: 0 0 4px rgba(0,255,102,0.1); }
+    .numpad-btn.clear { color: #ff3333; font-size: 18px; }
+    body.theme-cyber .numpad-btn.clear { color: #ff0033; border-color: #ff0033; text-shadow: 0 0 5px #ff0033; }
+
+    .btn-primary { width: 100%; padding: 15px; margin-top: 25px; background-color: var(--accent-color); color: var(--accent-text); border: 1px solid var(--border-color); border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
     .btn-primary:active { transform: scale(0.98); opacity: 0.8; }
-    
-    /* サイバーテーマの時だけボタンを光らせる */
     body.theme-cyber .btn-primary { box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); text-shadow: 0 0 5px #00ff66; }
 
     #message { text-align: center; margin-top: 15px; color: var(--accent-color); font-weight: bold; display: none; }
@@ -115,9 +142,7 @@
 <body class="theme-default">
 
   <div class="app-header" id="appHeader" style="display: none;">
-    <button class="menu-btn" id="menuBtn">
-      <span></span><span></span><span></span>
-    </button>
+    <button class="menu-btn" id="menuBtn"><span></span><span></span><span></span></button>
     <div class="header-title">💸 HYBRID KAKEIBO</div>
   </div>
 
@@ -149,8 +174,7 @@
   <div class="container" id="mainForm" style="display: none;">
     <div class="card">
       <label>金額</label>
-      <input type="number" id="amount" placeholder="¥ 150" required>
-
+<input type="text" id="amount" placeholder="¥ 0" readonly inputmode="none">
       <label>カテゴリ</label>
       <select id="category">
         <option value="食費">食費</option>
@@ -168,6 +192,26 @@
 
       <button id="submitBtn" class="btn-primary">記録する</button>
       <p id="message">保存完了！</p>
+    </div>
+  </div>
+
+  <div class="bottom-numpad-container" id="bottomNumpad">
+    <div class="numpad-header">
+      <button class="numpad-close-btn" onclick="closeNumpad()">確定 🔽</button>
+    </div>
+    <div class="numpad-grid">
+      <button class="numpad-btn" onclick="inputNum('1')">1</button>
+      <button class="numpad-btn" onclick="inputNum('2')">2</button>
+      <button class="numpad-btn" onclick="inputNum('3')">3</button>
+      <button class="numpad-btn" onclick="inputNum('4')">4</button>
+      <button class="numpad-btn" onclick="inputNum('5')">5</button>
+      <button class="numpad-btn" onclick="inputNum('6')">6</button>
+      <button class="numpad-btn" onclick="inputNum('7')">7</button>
+      <button class="numpad-btn" onclick="inputNum('8')">8</button>
+      <button class="numpad-btn" onclick="inputNum('9')">9</button>
+      <button class="numpad-btn clear" onclick="clearNum()">C</button>
+      <button class="numpad-btn" onclick="inputNum('0')">0</button>
+      <button class="numpad-btn" onclick="backspaceNum()">⌫</button>
     </div>
   </div>
 
@@ -194,26 +238,68 @@
     let isSignUpMode = false;
     let currentMethods = ["現金", "EVERING", "クレジットカード", "郵カード", "Uカード", "住カード", "ぺいぺい"];
 
-    // 🎨 テーマ管理機能
-    // ページを読み込んだ時にローカルストレージからテーマを復元
+    // 🧮 ボトムキーボード制御ロジック
+    const amountField = document.getElementById("amount");
+    const bottomNumpad = document.getElementById("bottomNumpad");
+    
+    // 金額をタップしたら下から出現
+    amountField.addEventListener("click", (e) => {
+      e.preventDefault(); // スマホの標準動作をブロック
+      e.stopPropagation(); // イベントの連鎖を止める
+      amountField.blur(); // 💡 強制的にフォーカスを外して標準キーボードを消す！
+      bottomNumpad.classList.add("open");
+    });
+    
+    // 確定ボタンで引っ込む
+    window.closeNumpad = function() {
+      bottomNumpad.classList.remove("open");
+    };
+    
+    // 画面の他の場所をタップしても引っ込む
+    document.addEventListener("click", (e) => {
+      if (!bottomNumpad.contains(e.target) && e.target !== amountField) {
+        closeNumpad();
+      }
+    });
+
+    window.inputNum = function(num) {
+      let current = amountField.value.replace("¥ ", "").replace(/,/g, "");
+      if (current === "0") current = "";
+      
+      if (current.length < 8) { // 桁制限
+        current += num;
+        amountField.value = "¥ " + Number(current).toLocaleString();
+      }
+    };
+    
+    window.clearNum = function() {
+      amountField.value = "¥ 0";
+    };
+    
+    window.backspaceNum = function() {
+      let current = amountField.value.replace("¥ ", "").replace(/,/g, "");
+      current = current.slice(0, -1);
+      if (current === "" || current === "0") {
+        amountField.value = "¥ 0";
+      } else {
+        amountField.value = "¥ " + Number(current).toLocaleString();
+      }
+    };
+
+    // 🎨 テーマ管理
     const savedTheme = localStorage.getItem('kakeibo-theme') || 'theme-default';
     document.body.className = savedTheme;
 
-    // テーマ変更関数（HTMLのonclickから呼ばれるようにwindowに登録）
     window.changeTheme = function(themeName) {
       document.body.className = themeName;
       localStorage.setItem('kakeibo-theme', themeName);
-      toggleMenu(); // テーマを変えたらメニューを閉じる
+      toggleMenu();
     };
 
-    // 🍔 ハンバーガーメニューの開閉機能
+    // 🍔 メニュー開閉
     const menuBtn = document.getElementById('menuBtn');
     const fullMenu = document.getElementById('fullMenu');
-    
-    function toggleMenu() {
-      menuBtn.classList.toggle('open');
-      fullMenu.classList.toggle('open');
-    }
+    function toggleMenu() { menuBtn.classList.toggle('open'); fullMenu.classList.toggle('open'); }
     menuBtn.addEventListener('click', toggleMenu);
 
     // 支払い方法の描画
@@ -222,9 +308,7 @@
       select.innerHTML = "";
       currentMethods.forEach(method => {
         const opt = document.createElement("option");
-        opt.value = method;
-        opt.innerText = method;
-        select.appendChild(opt);
+        opt.value = method; opt.innerText = method; select.appendChild(opt);
       });
     }
 
@@ -235,7 +319,7 @@
       document.querySelector("#authForm button").innerText = isSignUpMode ? "新規登録" : "ログイン";
     });
 
-    // 認証状態の監視
+    // 認証監視
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         document.getElementById("authScreen").style.display = "none";
@@ -250,6 +334,7 @@
           await setDoc(userRef, { paymentMethods: currentMethods }, { merge: true });
         }
         renderMethods();
+        amountField.value = "¥ 0"; // 初期値
       } else {
         document.getElementById("authScreen").style.display = "block";
         document.getElementById("mainForm").style.display = "none";
@@ -257,7 +342,7 @@
       }
     });
 
-    // ログイン処理（パスキー対応のform submit）
+    // ログイン処理
     document.getElementById("authForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = document.getElementById("authEmail").value;
@@ -268,54 +353,43 @@
       } catch (error) { alert(`エラー: ${error.message}`); }
     });
 
-    // ログアウト処理
-    document.getElementById("logoutLink").addEventListener("click", () => {
-      toggleMenu();
-      signOut(auth);
-    });
+    // ログアウト
+    document.getElementById("logoutLink").addEventListener("click", () => { toggleMenu(); signOut(auth); });
 
     // 支払い方法追加
     document.getElementById("addMethodBtn").addEventListener("click", async () => {
-      toggleMenu(); // メニューを閉じてからプロンプトを出す
+      toggleMenu();
       setTimeout(async () => {
         const newMethod = prompt("新しい支払い方法を入力してね！\n例: Suica, 楽天ペイ");
         if (newMethod && newMethod.trim() !== "") {
           const trimmed = newMethod.trim();
           if (!currentMethods.includes(trimmed)) {
-            currentMethods.push(trimmed);
-            renderMethods();
-            document.getElementById("paymentMethod").value = trimmed;
+            currentMethods.push(trimmed); renderMethods(); document.getElementById("paymentMethod").value = trimmed;
             const user = auth.currentUser;
-            if (user) {
-              await setDoc(doc(db, "user_settings", user.uid), { paymentMethods: currentMethods }, { merge: true });
-            }
+            if (user) await setDoc(doc(db, "user_settings", user.uid), { paymentMethods: currentMethods }, { merge: true });
           } else { alert("すでに登録されてるよ！"); }
         }
-      }, 300); // メニューが閉じるのを待つ
+      }, 300);
     });
 
     // データ送信処理
     document.getElementById("submitBtn").addEventListener("click", async () => {
-      const amount = document.getElementById("amount").value;
+      const amountStr = amountField.value.replace("¥ ", "").replace(/,/g, "");
+      const amount = Number(amountStr);
       const category = document.getElementById("category").value;
       const paymentMethod = document.getElementById("paymentMethod").value;
       const memo = document.getElementById("memo").value;
 
-      if (!amount) { alert("金額を入力してね！"); return; }
+      if (!amount || amount === 0) { alert("金額を入力してね！"); return; }
 
       try {
         await addDoc(collection(db, "transactions"), {
-          amount: Number(amount),
-          category: category,
-          type: "expense",
-          paymentMethod: paymentMethod,
-          memo: memo,
-          date: new Date(),
-          userId: auth.currentUser.uid 
+          amount: amount, category: category, type: "expense",
+          paymentMethod: paymentMethod, memo: memo, date: new Date(), userId: auth.currentUser.uid 
         });
 
         document.getElementById("message").style.display = "block";
-        document.getElementById("amount").value = "";
+        amountField.value = "¥ 0";
         document.getElementById("memo").value = "";
         setTimeout(() => { document.getElementById("message").style.display = "none"; }, 3000);
       } catch (error) { alert("保存に失敗しました。"); }
