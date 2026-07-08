@@ -12,125 +12,65 @@
       --menu-bg: rgba(255, 255, 255, 0.95); --numpad-panel-bg: #f1f3f5; --numpad-btn-bg: #ffffff;
       --numpad-btn-active: #e9ecef; --op-btn-bg: #e2e6ea; --op-btn-text: #007bff;
       --toggle-bg: #e9ecef; --toggle-active-expense: #ff3333; --toggle-active-income: #28a745;
-      --nav-bg: #ffffff; --nav-active: #007bff;
+      --nav-bg: #ffffff; --nav-active: #007bff; --modal-overlay: rgba(0, 0, 0, 0.5);
     }
     
     body.theme-cyber {
-      --bg-color: #050505; --container-bg: #0a0a0a; --text-main: #00ff66; --text-sub: #008833;
-      --input-bg: #000000; --border-color: #00ff66; --accent-color: #000000; --accent-text: #00ff66;
-      --menu-bg: rgba(5, 5, 5, 0.95); --numpad-panel-bg: #080808; --numpad-btn-bg: #000000;
-      --numpad-btn-active: #00220a; --op-btn-bg: #001a08; --op-btn-text: #00ff66;
-      --toggle-bg: #111; --toggle-active-expense: #ff0033; --toggle-active-income: #00ff66;
-      --nav-bg: #0a0a0a; --nav-active: #00ff66;
+      --bg-color: #0d0e12; --container-bg: #161822; --text-main: #e0e0e0; --text-sub: #888888;
+      --input-bg: #0d0e12; --border-color: #252838; --accent-color: #00ff66; --accent-text: #000000;
+      --menu-bg: rgba(13, 14, 18, 0.95); --numpad-panel-bg: #161822; --numpad-btn-bg: #0d0e12;
+      --numpad-btn-active: #1c1f2d; --op-btn-bg: #1a231f; --op-btn-text: #00ff66;
+      --toggle-bg: #0d0e12; --toggle-active-expense: #ff3366; --toggle-active-income: #00ff66;
+      --nav-bg: #161822; --nav-active: #00ff66; --modal-overlay: rgba(0, 0, 0, 0.85);
     }
 
-    body.theme-ocean {
-      --bg-color: #020b14; --container-bg: #06192e; --text-main: #e0f7fa; --text-sub: #81d4fa;
-      --input-bg: #011122; --border-color: #0288d1; --accent-color: #00b4d8; --accent-text: #020b14;
-      --menu-bg: rgba(6, 25, 46, 0.95); --numpad-panel-bg: #010d1a; --numpad-btn-bg: #01162c;
-      --numpad-btn-active: #01284f; --op-btn-bg: #022340; --op-btn-text: #00b4d8;
-      --toggle-bg: #011122; --toggle-active-expense: #ff5252; --toggle-active-income: #26a69a;
-      --nav-bg: #06192e; --nav-active: #00b4d8;
-    }
-
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background-color: var(--bg-color); color: var(--text-main); transition: 0.3s ease; padding-bottom: 80px; }
-    .app-header { display: flex; align-items: center; justify-content: center; padding: 15px; position: relative; }
-    .header-title { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-main); transition: 0.3s; padding-bottom: 80px; }
+    .app-header { display: flex; align-items: center; justify-content: center; padding: 15px; position: relative; } .header-title { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
+    .menu-btn { position: absolute; left: 15px; top: 15px; z-index: 1001; background: none; border: none; cursor: pointer; padding: 5px; display: flex; flex-direction: column; gap: 5px; } .menu-btn span { display: block; width: 25px; height: 3px; background-color: var(--text-main); border-radius: 3px; transition: 0.3s; }
+    .menu-btn.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); } .menu-btn.open span:nth-child(2) { opacity: 0; } .menu-btn.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
     
-    .menu-btn { position: absolute; left: 15px; top: 15px; z-index: 1001; background: none; border: none; cursor: pointer; padding: 5px; display: flex; flex-direction: column; gap: 5px; }
-    .menu-btn span { display: block; width: 25px; height: 3px; background-color: var(--text-main); border-radius: 3px; transition: 0.3s; }
-    .menu-btn.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
-    .menu-btn.open span:nth-child(2) { opacity: 0; }
-    .menu-btn.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
-    
-    .fullscreen-menu { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--menu-bg); backdrop-filter: blur(10px); z-index: 1000; clip-path: circle(0px at 25px 25px); transition: clip-path 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .fullscreen-menu.open { clip-path: circle(150% at 25px 25px); }
-    .menu-content { display: flex; flex-direction: column; gap: 30px; text-align: center; opacity: 0; transform: translateY(20px); transition: 0.3s; }
-    .fullscreen-menu.open .menu-content { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
+    .fullscreen-menu { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--menu-bg); backdrop-filter: blur(10px); z-index: 1000; clip-path: circle(0px at 25px 25px); transition: clip-path 0.5s; display: flex; flex-direction: column; align-items: center; justify-content: center; } .fullscreen-menu.open { clip-path: circle(150% at 25px 25px); }
+    .menu-content { display: flex; flex-direction: column; gap: 30px; text-align: center; opacity: 0; transform: translateY(20px); transition: 0.3s; } .fullscreen-menu.open .menu-content { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
     .menu-item { background: none; border: none; color: var(--text-main); font-size: 20px; font-weight: bold; padding: 10px; cursor: pointer; }
-    .theme-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 10px; }
-    .theme-circle { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border-color); cursor: pointer; }
-    .theme-circle.t-default { background: #ffffff; border-color: #ccc; }
-    .theme-circle.t-cyber { background: #000000; border-color: #00ff66; box-shadow: 0 0 10px #00ff66; }
-    .theme-circle.t-ocean { background: #06192e; border-color: #00b4d8; }
-
-    .type-switcher { display: flex; background: var(--toggle-bg); border-radius: 8px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border-color); }
-    .switch-btn { flex: 1; padding: 10px; text-align: center; font-weight: bold; font-size: 14px; border-radius: 6px; cursor: pointer; transition: 0.2s ease; color: var(--text-sub); }
-    .switch-btn.active.expense { background: var(--toggle-active-expense); color: #fff; }
-    .switch-btn.active.income { background: var(--toggle-active-income); color: #fff; }
-    body.theme-cyber .switch-btn.active.income { color: #000; font-weight: bold; box-shadow: 0 0 10px #00ff66; }
-
-    .container { padding: 15px; max-width: 400px; margin: 0 auto; }
-    .card { background: var(--container-bg); padding: 20px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); border: 1px solid var(--border-color); margin-bottom: 15px; }
-    label { display: block; margin-top: 15px; font-weight: bold; color: var(--text-sub); font-size: 13px; }
-    input, select { width: 100%; padding: 12px; margin-top: 5px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
-    ::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
-    body.theme-cyber ::-webkit-calendar-picker-indicator, body.theme-ocean ::-webkit-calendar-picker-indicator { filter: invert(1); }
+    .theme-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 10px; } .theme-circle { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border-color); cursor: pointer; } .theme-circle.t-cyber { background: #000000; border-color: #00ff66; box-shadow: 0 0 10px #00ff66; }
     
-    #amount { font-size: 28px; font-weight: bold; text-align: right; letter-spacing: 1px; padding: 15px; cursor: pointer; }
-
-    .app-page { display: none; animation: fadeIn 0.3s ease; }
-    .app-page.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-    .balance-total-box { text-align: center; padding: 15px 0; }
-    .balance-total-box h4 { margin: 0; color: var(--text-sub); font-weight: normal; font-size: 14px; }
-    .balance-total-box .total-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 5px; }
-    .balance-total-box .total-val { font-size: 36px; font-weight: bold; color: var(--text-main); font-family: monospace; }
-    body.theme-cyber .balance-total-box .total-val { color: #00ff66; text-shadow: 0 0 10px rgba(0,255,102,0.4); }
+    .type-switcher { display: flex; background: var(--toggle-bg); border-radius: 8px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border-color); } .switch-btn { flex: 1; padding: 10px; text-align: center; font-weight: bold; font-size: 14px; border-radius: 6px; cursor: pointer; transition: 0.2s ease; color: var(--text-sub); } .switch-btn.active.expense { background: var(--toggle-active-expense); color: #fff; } .switch-btn.active.income { background: var(--toggle-active-income); color: #fff; } body.theme-cyber .switch-btn.active.income { color: #000; box-shadow: 0 0 10px #00ff66; }
+    .container { padding: 15px; max-width: 400px; margin: 0 auto; } .card { background: var(--container-bg); padding: 20px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); border: 1px solid var(--border-color); margin-bottom: 15px; }
+    label { display: block; margin-top: 15px; font-weight: bold; color: var(--text-sub); font-size: 13px; } input, select { width: 100%; padding: 12px; margin-top: 5px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: 0.3s; } ::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; } body.theme-cyber ::-webkit-calendar-picker-indicator { filter: invert(1); } #amount { font-size: 28px; font-weight: bold; text-align: right; letter-spacing: 1px; padding: 15px; cursor: pointer; }
+    .app-page { display: none; animation: fadeIn 0.3s ease; } .app-page.active { display: block; } @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     
-    .bank-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
-    .bank-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; }
-    .bank-name { font-weight: bold; font-size: 16px; }
-    .bank-right { display: flex; align-items: center; gap: 10px; }
-    .bank-balance { font-family: monospace; font-weight: bold; font-size: 18px; }
-    .bank-balance.plus { color: #28a745; }
-    .bank-balance.minus { color: #dc3545; }
-    body.theme-cyber .bank-balance.plus { color: #00ff66; }
-    body.theme-cyber .bank-balance.minus { color: #ff0033; }
-
-    /* 💡 ミニステルスボタンのスタイル */
-    .btn-stealth-eye { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 14px; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
-    .btn-stealth-eye:active { transform: scale(0.9); }
-    body.theme-cyber .btn-stealth-eye { border-color: #00ff66; color: #00ff66; }
+    .balance-total-box { text-align: center; padding: 15px 0; } .balance-total-box h4 { margin: 0; color: var(--text-sub); font-weight: normal; font-size: 14px; } .balance-total-box .total-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 5px; } .balance-total-box .total-val { font-size: 36px; font-weight: bold; color: var(--text-main); font-family: monospace; } body.theme-cyber .balance-total-box .total-val { color: #00ff66; text-shadow: 0 0 10px rgba(0,255,102,0.4); }
+    .bank-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; } .bank-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; } .bank-name { font-weight: bold; font-size: 16px; } .bank-right { display: flex; align-items: center; gap: 10px; } .bank-balance { font-family: monospace; font-weight: bold; font-size: 18px; } .bank-balance.plus { color: #28a745; } .bank-balance.minus { color: #dc3545; } body.theme-cyber .bank-balance.plus { color: #00ff66; } body.theme-cyber .bank-balance.minus { color: #ff3366; }
+    
+    .btn-stealth-eye { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 14px; transition: 0.1s; display: flex; align-items: center; justify-content: center; } .btn-stealth-eye:active { transform: scale(0.9); } body.theme-cyber .btn-stealth-eye { border-color: #00ff66; color: #00ff66; }
+    /* 🗑️ 削除ボタンのスタイル */
+    .btn-delete-method { background: transparent; border: 1px solid #ff3366; color: #ff3366; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 14px; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
+    .btn-delete-method:active { transform: scale(0.9); background: rgba(255, 51, 102, 0.1); }
 
     .btn-add-bank { width: 100%; padding: 12px; background: transparent; border: 1px dashed var(--border-color); color: var(--text-sub); border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; margin-top: 10px; transition: 0.2s; }
-    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--nav-bg); border-top: 1px solid var(--border-color); display: flex; z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
-    .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sub); font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; gap: 4px; }
-    .nav-tab .icon { font-size: 20px; }
-    .nav-tab.active { color: var(--nav-active); }
-    body.theme-cyber .nav-tab.active { text-shadow: 0 0 8px #00ff66; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--nav-bg); border-top: 1px solid var(--border-color); display: flex; z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); } .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sub); font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; gap: 4px; } .nav-tab.active { color: var(--nav-active); } body.theme-cyber .nav-tab.active { text-shadow: 0 0 8px #00ff66; }
+    .bottom-numpad-container { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--numpad-panel-bg); border-top: 1px solid var(--border-color); z-index: 2000; box-sizing: border-box; padding: 10px 15px 25px 15px; transform: translateY(100%); transition: transform 0.3s; box-shadow: 0 -5px 20px rgba(0,0,0,0.15); } .bottom-numpad-container.open { transform: translateY(0); } .numpad-header { display: flex; flex-direction: column; gap: 5px; padding-bottom: 8px; border-bottom: 1px solid rgba(128,128,128,0.2); margin-bottom: 10px; } .numpad-header-top { display: flex; justify-content: space-between; align-items: center; } .calc-preview { font-size: 14px; color: var(--text-sub); font-family: 'Courier New', monospace; height: 20px; text-align: right; } .history-tape { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; } .history-tape::-webkit-scrollbar { display: none; } .history-chip { background: var(--numpad-btn-bg); color: var(--text-sub); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; } body.theme-cyber .history-chip { color: #00ff66; border-color: rgba(0,255,102,0.3); } .numpad-close-btn { background: transparent; border: none; color: var(--text-main); font-size: 14px; font-weight: bold; cursor: pointer; padding: 5px; } body.theme-cyber .numpad-close-btn { color: #00ff66; text-shadow: 0 0 5px #00ff66; } .numpad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 400px; margin: 0 auto; } .numpad-btn { background: var(--numpad-btn-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px 0; font-size: 20px; font-weight: bold; font-family: 'Courier New', monospace; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; } .numpad-btn:active { background: var(--numpad-btn-active); transform: scale(0.95); } .numpad-btn.op { background: var(--op-btn-bg); color: var(--op-btn-text); font-size: 22px; } .numpad-btn.clear { color: #ff3333; font-size: 18px; } body.theme-cyber .numpad-btn.clear { color: #ff3366; text-shadow: 0 0 5px #ff3366; } .numpad-btn.equals { background: var(--accent-color); color: var(--accent-text); border: none; } body.theme-cyber .numpad-btn.equals { box-shadow: 0 0 10px rgba(0, 255, 102, 0.4); text-shadow: 0 0 5px #00ff66; }
+    .btn-primary { width: 100%; padding: 15px; margin-top: 25px; background-color: var(--accent-color); color: var(--accent-text); border: 1px solid var(--border-color); border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; } body.theme-cyber .btn-primary { box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); text-shadow: 0 0 5px #00ff66; } #message { text-align: center; margin-top: 15px; color: var(--accent-color); font-weight: bold; display: none; } .flex-row { display: flex; gap: 10px; align-items: center; } .btn-success { background-color: var(--border-color); color: var(--text-main); border: none; padding: 10px 15px; border-radius: 8px; font-size: 14px; width: auto; margin-top: 5px; white-space: nowrap; font-weight: bold; cursor: pointer; transition: 0.2s; } body.theme-cyber .btn-success { border: 1px solid #00ff66; background: transparent; color: #00ff66; box-shadow: 0 0 8px rgba(0,255,102,0.2); }
+    .badge-debit { font-size: 10px; padding: 2px 6px; border-radius: 12px; margin-left: 8px; vertical-align: middle; }
+    .badge-credit { font-size: 10px; color: #ffaa00; border: 1px solid #ffaa00; padding: 2px 6px; border-radius: 12px; margin-left: 8px; vertical-align: middle; }
 
-    .bottom-numpad-container { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--numpad-panel-bg); border-top: 1px solid var(--border-color); z-index: 2000; box-sizing: border-box; padding: 10px 15px 25px 15px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94); box-shadow: 0 -5px 20px rgba(0,0,0,0.15); }
-    .bottom-numpad-container.open { transform: translateY(0); }
-    .numpad-header { display: flex; flex-direction: column; gap: 5px; padding-bottom: 8px; border-bottom: 1px solid rgba(128,128,128,0.2); margin-bottom: 10px; }
-    .numpad-header-top { display: flex; justify-content: space-between; align-items: center; }
-    .calc-preview { font-size: 14px; color: var(--text-sub); font-family: 'Courier New', Courier, monospace; height: 20px; text-align: right; }
-    .history-tape { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
-    .history-tape::-webkit-scrollbar { display: none; }
-    .history-chip { background: var(--numpad-btn-bg); color: var(--text-sub); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; }
-    body.theme-cyber .history-chip { color: #00ff66; border-color: rgba(0,255,102,0.3); }
-    .numpad-close-btn { background: transparent; border: none; color: var(--text-main); font-size: 14px; font-weight: bold; cursor: pointer; padding: 5px; }
-    body.theme-cyber .numpad-close-btn { color: #00ff66; text-shadow: 0 0 5px #00ff66; }
-
-    .numpad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 400px; margin: 0 auto; }
-    .numpad-btn { background: var(--numpad-btn-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px 0; font-size: 20px; font-weight: bold; font-family: 'Courier New', Courier, monospace; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; }
-    .numpad-btn:active { background: var(--numpad-btn-active); transform: scale(0.95); }
-    .numpad-btn.op { background: var(--op-btn-bg); color: var(--op-btn-text); font-size: 22px; }
-    .numpad-btn.clear { color: #ff3333; font-size: 18px; }
-    body.theme-cyber .numpad-btn.clear { color: #ff0033; text-shadow: 0 0 5px #ff0033; }
-    .numpad-btn.equals { background: var(--accent-color); color: var(--accent-text); border: none; }
-    body.theme-cyber .numpad-btn.equals { box-shadow: 0 0 10px rgba(0, 255, 102, 0.4); text-shadow: 0 0 5px #00ff66; }
-
-    .btn-primary { width: 100%; padding: 15px; margin-top: 25px; background-color: var(--accent-color); color: var(--accent-text); border: 1px solid var(--border-color); border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
-    body.theme-cyber .btn-primary { box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); text-shadow: 0 0 5px #00ff66; }
-    #message { text-align: center; margin-top: 15px; color: var(--accent-color); font-weight: bold; display: none; }
-    .flex-row { display: flex; gap: 10px; align-items: center; }
-    .btn-success { background-color: var(--border-color); color: var(--text-main); border: none; padding: 10px 15px; border-radius: 8px; font-size: 14px; width: auto; margin-top: 5px; white-space: nowrap; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    body.theme-cyber .btn-success { border: 1px solid #00ff66; background: transparent; color: #00ff66; box-shadow: 0 0 8px rgba(0,255,102,0.2); }
+    /* 追加モーダル */
+    .custom-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--modal-overlay); backdrop-filter: blur(8px); z-index: 3000; justify-content: center; align-items: flex-end; opacity: 0; transition: opacity 0.3s ease; }
+    .custom-modal-overlay.open { display: flex; opacity: 1; }
+    .custom-modal-card { width: 100%; max-width: 420px; background: var(--container-bg); border-top: 2px solid var(--border-color); border-radius: 20px 20px 0 0; padding: 25px; box-sizing: border-box; color: var(--text-main); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94); box-shadow: 0 -10px 30px rgba(0,0,0,0.3); padding-bottom: 40px; }
+    body.theme-cyber .custom-modal-card { border-top-color: #00ff66; box-shadow: 0 -5px 25px rgba(0,255,102,0.15); }
+    .custom-modal-overlay.open .custom-modal-card { transform: translateY(0); }
+    .modal-header-title { font-size: 18px; font-weight: bold; color: var(--accent-color); margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    body.theme-cyber .modal-header-title { color: #00ff66; text-shadow: 0 0 5px #00ff66; }
+    .type-segment { display: flex; background: var(--toggle-bg); border-radius: 8px; padding: 4px; margin-top: 5px; border: 1px solid var(--border-color); }
+    .segment-btn { flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer; color: var(--text-sub); transition: 0.2s; }
+    .segment-btn.active { background: var(--accent-color); color: var(--accent-text); }
+    body.theme-cyber .segment-btn.active { background: #00ff66; color: #000; box-shadow: 0 0 8px rgba(0,255,102,0.4); }
+    .linked-bank-wrapper { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .linked-bank-wrapper.show { max-height: 100px; opacity: 1; margin-top: 5px; }
   </style>
 </head>
-<body class="theme-default">
+<body class="theme-cyber">
 
   <div class="app-header" id="appHeader" style="display: none;">
     <button class="menu-btn" id="menuBtn"><span></span><span></span><span></span></button>
@@ -142,17 +82,15 @@
       <div>
         <p style="color: var(--text-sub); font-size: 12px; margin-bottom: 5px;">テーマ変更</p>
         <div class="theme-buttons">
-          <div class="theme-circle t-default" onclick="changeTheme('theme-default')"></div>
           <div class="theme-circle t-cyber" onclick="changeTheme('theme-cyber')"></div>
-          <div class="theme-circle t-ocean" onclick="changeTheme('theme-ocean')"></div>
         </div>
       </div>
-      <button class="menu-item" id="logoutLink" style="color: #ff3333;">ログアウト</button>
+      <button class="menu-item" id="logoutLink" style="color: #ff3366;">ログアウト</button>
     </div>
   </div>
 
   <div class="container auth-box" id="authScreen">
-    <h2 style="margin-top: 40px; margin-bottom: 20px;">SYSTEM LOGIN</h2>
+    <h2 style="margin-top: 40px; margin-bottom: 20px; color:#00ff66;">SYSTEM LOGIN</h2>
     <form id="authForm">
       <input type="email" id="authEmail" name="username" autocomplete="username" placeholder="メールアドレス" required>
       <input type="password" id="authPassword" name="password" autocomplete="current-password" placeholder="パスワード" required>
@@ -177,7 +115,7 @@
         <button type="button" class="btn-stealth-eye" id="btnHideAmount" onclick="toggleInputMask()">👁️</button>
       </div>
       
-      <label>カテゴリ（収入源/用途）</label>
+      <label>カテゴリ（用途/収入源）</label>
       <div class="flex-row">
         <select id="category" style="flex: 1; margin-top: 5px;"></select>
         <button type="button" class="btn-success" id="addCategoryBtn">＋ 追加</button>
@@ -186,8 +124,9 @@
       <label id="labelMethod">支払い・受取先口座</label>
       <div class="flex-row">
         <select id="paymentMethod" style="flex: 1; margin-top: 5px;"></select>
-        <button type="button" class="btn-success" id="addMethodBtnInline">＋ 追加</button>
+        <button type="button" class="btn-success" onclick="openAddMethodModal()">＋ 追加</button>
       </div>
+      <p id="methodHintText" style="font-size: 11px; color: #00ff66; margin-top: 5px; margin-bottom: 0;"></p>
       
       <label>メモ (任意)</label>
       <input type="text" id="memo" placeholder="コンビニコーヒー">
@@ -206,9 +145,40 @@
       </div>
     </div>
     <div class="card">
-      <p style="margin:0; font-size:13px; color:var(--text-sub); font-weight:bold;">口座・決済手段別の残高</p>
+      <p style="margin:0; font-size:13px; color:var(--text-sub); font-weight:bold;">口座・決済手段別の現在高</p>
       <div class="bank-list" id="bankListContainer"></div>
-      <button class="btn-add-bank" id="addBankBtnPage2">＋ 新しい銀行・口座を追加</button>
+      <button class="btn-add-bank" onclick="openAddMethodModal()">＋ 新しい銀行・カードを追加</button>
+    </div>
+  </div>
+
+  <div id="addMethodModal" class="custom-modal-overlay" onclick="closeAddMethodModal(event)">
+    <div class="custom-modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header-title">
+        <span>⚡ SYSTEM ACCOUNT REGISTRY</span>
+        <span style="cursor:pointer; font-size:20px; color:var(--text-sub);" onclick="closeAddMethodModal(null)">✕</span>
+      </div>
+      
+      <label>口座・カードの名称</label>
+      <input type="text" id="newMethodName" placeholder="例: 三井住友銀行, 郵カード, クレカ">
+
+      <label>種類（仕訳タイプ）</label>
+      <div class="type-segment">
+        <div class="segment-btn active" id="segAsset" onclick="selectModalType('asset')">銀行・現金</div>
+        <div class="segment-btn" id="segCredit" onclick="selectModalType('credit')">クレジット</div>
+        <div class="segment-btn" id="segDebit" onclick="selectModalType('debit')">デビット</div>
+      </div>
+
+      <div id="modalLinkedWrapper" class="linked-bank-wrapper">
+        <label style="color: #ffaa00;">🔗 つながる引き落とし銀行口座</label>
+        <select id="newMethodLink"></select>
+      </div>
+
+      <div id="modalInitialBalanceWrapper">
+        <label>現在のリアル初期残高</label>
+        <input type="number" id="newMethodBalance" placeholder="例: 50000 (なければ0でOK)" value="0">
+      </div>
+
+      <button type="button" class="btn-primary" style="margin-top:25px;" onclick="executeAddMethod()">システムに組み込む (REGISTER)</button>
     </div>
   </div>
 
@@ -257,8 +227,8 @@
     import { getFirestore, collection, addDoc, doc, setDoc, getDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-    // ⚠️ ここは本物の config に書き換えてね！ ⚠️
-    const firebaseConfig = {
+    // ⚠️ Firebase Config
+     const firebaseConfig = {
   apiKey: "AIzaSyB5UE_wkcBoBsaGo0warU40csxJAWi73-I",
   authDomain: "hybrid-kakeibo.firebaseapp.com",
   projectId: "hybrid-kakeibo",
@@ -268,29 +238,25 @@
   measurementId: "G-5SV54CHL1W"
 };
 
-
     const app = initializeApp(firebaseConfig); const db = getFirestore(app); const auth = getAuth(app);
     let isSignUpMode = false; let currentDataType = "expense";
-    let currentMethods = ["現金", "EVERING", "クレジットカード", "郵カード", "Uカード", "住カード", "ぺいぺい"];
+    let currentMethods = ["現金", "ゆうちょ銀行", "郵カード", "クレジットカード"];
+    let methodConfigs = {
+      "現金": { type: "asset" },
+      "ゆうちょ銀行": { type: "asset" },
+      "郵カード": { type: "debit", linkedBank: "ゆうちょ銀行" },
+      "クレジットカード": { type: "credit", linkedBank: "ゆうちょ銀行" }
+    };
+
     let expenseCategories = ["食費", "日用品", "交通費", "娯楽", "その他"];
     let incomeCategories = ["給与", "バイト代", "お小遣い", "副収入", "その他"];
-    let unsubscribeTransactions = null;
-    let stealthTargets = { methods: [], categories: [] };
-
-    // 💡 個別非表示（マスク）状態を管理するローカル変数
-    let isInputAmountMasked = false;
-    let isTotalAssetMasked = false;
-    let maskedBanks = {}; // 各銀行口座ごとの隠蔽状態 { '郵カード': true, '現金': false }
-    let cachedGrandTotal = 0; // 残高再描画用のキャッシュ
-    let cachedBalances = {};
+    let unsubscribeTransactions = null; let stealthTargets = { methods: [], categories: [] };
+    let isInputAmountMasked = false; let isTotalAssetMasked = false; let maskedBanks = {}; 
+    let cachedGrandTotal = 0; let cachedBalances = {};
+    let modalSelectedType = "asset";
 
     function setInitialDateTime() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); const day = String(now.getDate()).padStart(2, '0'); const hours = String(now.getHours()).padStart(2, '0'); const minutes = String(now.getMinutes()).padStart(2, '0');
       document.getElementById('transactionDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
     }
 
@@ -306,103 +272,145 @@
 
     const amountField = document.getElementById("amount"); const bottomNumpad = document.getElementById("bottomNumpad"); const calcPreview = document.getElementById("calcPreview"); const historyTape = document.getElementById("historyTape");
     let currentVal = ""; let previousVal = ""; let operation = null; let shouldResetScreen = false; let amountHistory = JSON.parse(localStorage.getItem('kakeibo-history')) || [];
-    
-    // 💡 入力金額の表示（マスク対応）
-    function updateDisplay() {
-      if (isInputAmountMasked) {
-        amountField.value = "¥ ****";
-      } else {
-        amountField.value = currentVal === "" ? "¥ 0" : "¥ " + Number(currentVal).toLocaleString();
-      }
-      calcPreview.innerText = operation ? `${Number(previousVal).toLocaleString()} ${operation} ${currentVal ? Number(currentVal).toLocaleString() : ''}` : "";
-    }
+    function updateDisplay() { if (isInputAmountMasked) { amountField.value = "¥ ****"; } else { amountField.value = currentVal === "" ? "¥ 0" : "¥ " + Number(currentVal).toLocaleString(); } calcPreview.innerText = operation ? `${Number(previousVal).toLocaleString()} ${operation} ${currentVal ? Number(currentVal).toLocaleString() : ''}` : ""; }
+    window.toggleInputMask = function() { isInputAmountMasked = !isInputAmountMasked; document.getElementById("btnHideAmount").innerText = isInputAmountMasked ? "✖️" : "👁️"; updateDisplay(); };
+    window.toggleTotalMask = function() { isTotalAssetMasked = !isTotalAssetMasked; renderBalancesUI(); };
+    window.toggleBankMask = function(bankName) { maskedBanks[bankName] = !maskedBanks[bankName]; renderBalancesUI(); };
 
-    // 💡 入力欄のマスク切り替えボタン
-    window.toggleInputMask = function() {
-      isInputAmountMasked = !isInputAmountMasked;
-      document.getElementById("btnHideAmount").innerText = isInputAmountMasked ? "✖️" : "👁️";
-      updateDisplay();
-    };
-
-    // 💡 総資産のマスク切り替えボタン
-    window.toggleTotalMask = function() {
-      isTotalAssetMasked = !isTotalAssetMasked;
-      renderBalancesUI();
-    };
-
-    // 💡 銀行口座ごとの個別マスク切り替えボタン
-    window.toggleBankMask = function(bankName) {
-      maskedBanks[bankName] = !maskedBanks[bankName];
-      renderBalancesUI();
-    };
-
-    function renderHistory() { historyTape.innerHTML = ""; amountHistory.forEach(val => { const chip = document.createElement("div"); chip.className = "history-chip"; chip.innerText = "¥ " + Number(val).toLocaleString(); chip.onclick = () => { currentVal = val.toString(); operation = null; previousVal = ""; updateDisplay(); }; historyTape.appendChild(chip); }); }
-    renderHistory();
+    function renderHistory() { historyTape.innerHTML = ""; amountHistory.forEach(val => { const chip = document.createElement("div"); chip.className = "history-chip"; chip.innerText = "¥ " + Number(val).toLocaleString(); chip.onclick = () => { currentVal = val.toString(); operation = null; previousVal = ""; updateDisplay(); }; historyTape.appendChild(chip); }); } renderHistory();
     window.inputNum = function(num) { if (shouldResetScreen) { currentVal = ""; shouldResetScreen = false; } if (currentVal === "0" && num !== "0" && num !== "00") currentVal = ""; if (currentVal.length < 9) currentVal += num; updateDisplay(); };
     window.chooseOp = function(op) { if (currentVal === "") return; if (previousVal !== "") compute(); operation = op; previousVal = currentVal; currentVal = ""; updateDisplay(); };
     window.compute = function() { let computation; const prev = parseFloat(previousVal); const current = parseFloat(currentVal); if (isNaN(prev) || isNaN(current)) return; switch (operation) { case '+': computation = prev + current; break; case '-': computation = prev - current; break; case '×': computation = prev * current; break; case '÷': computation = prev / current; break; default: return; } currentVal = Math.floor(computation).toString(); operation = null; previousVal = ""; shouldResetScreen = true; updateDisplay(); };
     window.addTax = function() { if (currentVal === "") return; currentVal = Math.floor(Number(currentVal) * 1.1).toString(); shouldResetScreen = true; updateDisplay(); };
     window.clearNum = function() { currentVal = ""; previousVal = ""; operation = null; updateDisplay(); };
     window.backspaceNum = function() { currentVal = currentVal.slice(0, -1); updateDisplay(); };
-    amountField.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); amountField.blur(); bottomNumpad.classList.add("open"); });
-    window.closeNumpad = function() { bottomNumpad.classList.remove("open"); }; document.addEventListener("click", (e) => { if (!bottomNumpad.contains(e.target) && e.target !== amountField) closeNumpad(); });
+    amountField.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); amountField.blur(); bottomNumpad.classList.add("open"); }); window.closeNumpad = function() { bottomNumpad.classList.remove("open"); }; document.addEventListener("click", (e) => { if (!bottomNumpad.contains(e.target) && e.target !== amountField) closeNumpad(); });
 
-    const savedTheme = localStorage.getItem('kakeibo-theme') || 'theme-default'; document.body.className = savedTheme;
+    const savedTheme = localStorage.getItem('kakeibo-theme') || 'theme-cyber'; document.body.className = savedTheme;
     window.changeTheme = function(themeName) { document.body.className = themeName; localStorage.setItem('kakeibo-theme', themeName); toggleMenu(); };
     const menuBtn = document.getElementById('menuBtn'); const fullMenu = document.getElementById('fullMenu');
     function toggleMenu() { menuBtn.classList.toggle('open'); fullMenu.classList.toggle('open'); } menuBtn.addEventListener('click', toggleMenu);
-    function renderMethods() { const select = document.getElementById("paymentMethod"); select.innerHTML = ""; currentMethods.forEach(method => { const opt = document.createElement("option"); opt.value = method; opt.innerText = method; select.appendChild(opt); }); }
+    
+    document.getElementById("paymentMethod").addEventListener("change", function() {
+      const selected = this.value; const config = methodConfigs[selected] || {type:"asset"};
+      const hintEl = document.getElementById("methodHintText");
+      if(config.type === "debit") { hintEl.innerText = `🔄 [デビット] ${config.linkedBank} から即座に引き落とされます`; hintEl.style.color = "#00ff66"; }
+      else if(config.type === "credit") { hintEl.innerText = `💳 [クレジット] 未払金(負債)として記録されます`; hintEl.style.color = "#ffaa00"; }
+      else { hintEl.innerText = ""; }
+    });
 
-    // 💡 残高画面のUI描画ロジック（マスク対応）
+    function renderMethods() { 
+      const select = document.getElementById("paymentMethod"); select.innerHTML = ""; 
+      currentMethods.forEach(method => { 
+        const opt = document.createElement("option"); opt.value = method; opt.innerText = method; select.appendChild(opt); 
+      }); 
+      if(select.options.length > 0) select.dispatchEvent(new Event('change'));
+    }
+
     function renderBalancesUI() {
       document.getElementById("allAssetTotal").innerText = isTotalAssetMasked ? "¥ *****" : "¥ " + cachedGrandTotal.toLocaleString();
-
-      const container = document.getElementById("bankListContainer");
-      container.innerHTML = "";
+      const container = document.getElementById("bankListContainer"); container.innerHTML = "";
       
       Object.keys(cachedBalances).forEach(name => {
         if ((stealthTargets.methods || []).includes(name)) return;
-        
+        const config = methodConfigs[name] || {type:"asset"};
         const bal = cachedBalances[name];
         const signClass = bal >= 0 ? "plus" : "minus";
-        
-        // 💡 口座ごとに個別の隠蔽状態をチェック
+
+        let badge = "";
+        if (config.type === "credit") badge = `<span class="badge-credit" style="color:#ffaa00; border:1px solid #ffaa00;">未払金</span>`;
+        if (config.type === "asset" && (name.includes("銀行") || name.includes("口座") || name.includes("現金"))) badge = `<span class="badge-debit" style="color:#00bfff; border:1px solid #00bfff;">資産</span>`;
+        if (config.type === "debit") badge = `<span class="badge-debit" style="color:#ccff00; border:1px solid #ccff00;">デビット</span>`;
+
         const isBankHidden = maskedBanks[name] || false;
         const displayBalance = isBankHidden ? "¥ ****" : "¥ " + bal.toLocaleString();
         const eyeIcon = isBankHidden ? "✖️" : "👁️";
 
         container.innerHTML += `
           <div class="bank-item">
-            <span class="bank-name">${name}</span>
+            <span class="bank-name">${name} ${badge}</span>
             <div class="bank-right">
               <span class="bank-balance ${signClass}">${displayBalance}</span>
               <button type="button" class="btn-stealth-eye" onclick="toggleBankMask('${name}')">${eyeIcon}</button>
+              <button type="button" class="btn-delete-method" onclick="deleteMethod('${name}')">🗑️</button>
             </div>
           </div>
         `;
       });
     }
 
+    // 💡 削除機能の実装
+    window.deleteMethod = async function(name) {
+      if(confirm(`「${name}」をシステムから抹消しますか？\n(※過去の明細データは消えませんが、一覧には表示されなくなります)`)) {
+        currentMethods = currentMethods.filter(m => m !== name);
+        delete methodConfigs[name];
+        
+        if (auth.currentUser) {
+          await setDoc(doc(db, "user_settings", auth.currentUser.uid), { 
+            paymentMethods: currentMethods, 
+            methodConfigs: methodConfigs 
+          }, { merge: true });
+          renderMethods();
+          alert(`「${name}」を削除しました。`);
+        }
+      }
+    };
+
     function startRealtimeBalanceSync(uid) {
       const q = query(collection(db, "transactions"), where("userId", "==", uid));
       unsubscribeTransactions = onSnapshot(q, (snapshot) => {
         cachedBalances = {}; cachedGrandTotal = 0;
         currentMethods.forEach(m => cachedBalances[m] = 0);
-        
         snapshot.forEach(doc => {
           const data = doc.data(); const amount = data.amount || 0; const type = data.type || "expense"; const method = data.paymentMethod; const category = data.category;
-          const isTarget = (stealthTargets.methods || []).includes(method) || (stealthTargets.categories || []).includes(category);
-          if (isTarget) return; 
-
-          if (!cachedBalances[method]) cachedBalances[method] = 0;
-          if (type === "income") { cachedBalances[method] += amount; cachedGrandTotal += amount; } else { cachedBalances[method] -= amount; cachedGrandTotal -= amount; }
+          if ((stealthTargets.methods || []).includes(method) || (stealthTargets.categories || []).includes(category)) return;
+          const config = methodConfigs[method] || { type: "asset" };
+          let targetMethod = method;
+          if (config.type === "debit" && config.linkedBank) { targetMethod = config.linkedBank; }
+          if (!cachedBalances[targetMethod]) cachedBalances[targetMethod] = 0;
+          if (type === "income") { cachedBalances[targetMethod] += amount; if(config.type !== "credit") cachedGrandTotal += amount; } else { cachedBalances[targetMethod] -= amount; if(config.type !== "credit") cachedGrandTotal -= amount; }
         });
-        
         renderBalancesUI();
       });
     }
 
-    document.getElementById("authToggle").addEventListener("click", (e) => { isSignUpMode = !isSignUpMode; e.target.innerText = isSignUpMode ? "ログイン画面へ戻る" : "新規登録モードへ切り替え"; document.querySelector("#authForm button").innerText = isSignUpMode ? "新規登録" : "ログイン"; });
+    window.openAddMethodModal = function() {
+      const modal = document.getElementById("addMethodModal");
+      const linkSelect = document.getElementById("newMethodLink");
+      linkSelect.innerHTML = "";
+      Object.keys(methodConfigs).forEach(k => { if(methodConfigs[k].type === "asset") linkSelect.innerHTML += `<option value="${k}">${k}</option>`; });
+      modal.style.display = "flex"; setTimeout(() => modal.classList.add("open"), 10);
+      selectModalType('asset'); document.getElementById("newMethodName").value = ""; document.getElementById("newMethodBalance").value = "0";
+    };
+
+    window.closeAddMethodModal = function(e) { if (e === null || e.target === document.getElementById("addMethodModal")) { const modal = document.getElementById("addMethodModal"); modal.classList.remove("open"); setTimeout(() => modal.style.display = "none", 300); } };
+
+    window.selectModalType = function(type) {
+      modalSelectedType = type; document.querySelectorAll(".segment-btn").forEach(btn => btn.classList.remove("active"));
+      const linkWrapper = document.getElementById("modalLinkedWrapper"); const balanceWrapper = document.getElementById("modalInitialBalanceWrapper");
+      if (type === "asset") { document.getElementById("segAsset").classList.add("active"); linkWrapper.classList.remove("show"); balanceWrapper.style.display = "block"; } else if (type === "credit") { document.getElementById("segCredit").classList.add("active"); linkWrapper.classList.add("show"); balanceWrapper.style.display = "none"; } else if (type === "debit") { document.getElementById("segDebit").classList.add("active"); linkWrapper.classList.add("show"); balanceWrapper.style.display = "none"; }
+    };
+
+    window.executeAddMethod = async function() {
+      const nameInp = document.getElementById("newMethodName").value;
+      if(!nameInp || nameInp.trim() === "") { alert("名称を入力してね！"); return; }
+      const trimmedName = nameInp.trim();
+      if (currentMethods.includes(trimmedName)) { alert("すでに登録されているよ！"); return; }
+      let configObj = { type: modalSelectedType };
+      if (modalSelectedType === "credit" || modalSelectedType === "debit") {
+        const linked = document.getElementById("newMethodLink").value;
+        if(!linked) { alert("連動させる口座（銀行）を先に作ってね！"); return; }
+        configObj.linkedBank = linked;
+      }
+      currentMethods.push(trimmedName); methodConfigs[trimmedName] = configObj;
+      renderMethods(); document.getElementById("paymentMethod").value = trimmedName; document.getElementById("paymentMethod").dispatchEvent(new Event('change'));
+      if (auth.currentUser) {
+        await setDoc(doc(db, "user_settings", auth.currentUser.uid), { paymentMethods: currentMethods, methodConfigs: methodConfigs }, { merge: true });
+        const initialBal = Number(document.getElementById("newMethodBalance").value);
+        if (modalSelectedType === "asset" && initialBal > 0) await addDoc(collection(db, "transactions"), { amount: initialBal, category: "初期残高設定", type: "income", paymentMethod: trimmedName, memo: "システム自動初期設定", date: new Date(), userId: auth.currentUser.uid });
+        closeAddMethodModal(null); alert(`「${trimmedName}」を完全に同期・格納したよ！`);
+      }
+    };
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -411,15 +419,16 @@
         if (snap.exists()) {
           const data = snap.data();
           if (data.paymentMethods) currentMethods = data.paymentMethods;
+          if (data.methodConfigs) methodConfigs = data.methodConfigs;
           if (data.expenseCategories) expenseCategories = data.expenseCategories;
           if (data.incomeCategories) incomeCategories = data.incomeCategories;
           if (data.stealthTargets) stealthTargets = data.stealthTargets;
         } else {
-          await setDoc(userRef, { paymentMethods: currentMethods, expenseCategories: expenseCategories, incomeCategories: incomeCategories }, { merge: true });
+          await setDoc(userRef, { paymentMethods: currentMethods, methodConfigs: methodConfigs, expenseCategories: expenseCategories, incomeCategories: incomeCategories }, { merge: true });
         }
         renderMethods(); switchType("expense"); switchPage("input"); clearNum(); setInitialDateTime(); startRealtimeBalanceSync(user.uid);
       } else {
-        document.getElementById("authScreen").style.display = "block"; document.getElementById("appHeader").style.display = "none"; document.getElementById("bottomNav").style.display = "none"; document.getElementById("page-input").style.display = "none"; document.getElementById("page-balance").style.display = "none";
+        document.getElementById("authScreen").style.display = "block"; document.getElementById("appHeader").style.display = "none"; document.getElementById("bottomNav").style.display = "none";
         if (unsubscribeTransactions) unsubscribeTransactions();
       }
     });
@@ -428,7 +437,7 @@
     document.getElementById("logoutLink").addEventListener("click", () => { toggleMenu(); signOut(auth); });
 
     document.getElementById("addCategoryBtn").addEventListener("click", async () => {
-      const isExpense = currentDataType === "expense"; const newCat = prompt(`新しい${isExpense ? '支出' : '収入'}カテゴリを入力してね！\n例: ${isExpense ? 'サブスク, カフェ' : 'メルカリ売上, ボーナス'}`);
+      const isExpense = currentDataType === "expense"; const newCat = prompt(`新しい${isExpense ? '支出' : '収入'}カテゴリを入力してね！`);
       if (newCat && newCat.trim() !== "") {
         const trimmed = newCat.trim(); const targetArray = isExpense ? expenseCategories : incomeCategories;
         if (!targetArray.includes(trimmed)) { targetArray.push(trimmed); switchType(currentDataType); document.getElementById("category").value = trimmed; 
@@ -436,21 +445,6 @@
         } else { alert("すでに登録されているよ！"); }
       }
     });
-
-    const handleAddBank = async () => {
-      const newBank = prompt("新しく追加する銀行・口座名を入力してね！");
-      if (newBank && newBank.trim() !== "") {
-        const trimmed = newBank.trim(); if (currentMethods.includes(trimmed)) { alert("すでに登録されているよ！"); return; }
-        const initialBalance = Number(prompt(`「${trimmed}」の現在のリアル残高（スタート金額）を入力してね！\nなければ 0 でOK！`));
-        currentMethods.push(trimmed); renderMethods(); document.getElementById("paymentMethod").value = trimmed; 
-        if (auth.currentUser) {
-          await setDoc(doc(db, "user_settings", auth.currentUser.uid), { paymentMethods: currentMethods }, { merge: true });
-          if (initialBalance && initialBalance > 0) await addDoc(collection(db, "transactions"), { amount: initialBalance, category: "その他", type: "income", paymentMethod: trimmed, memo: "初期残高設定", date: new Date(), userId: auth.currentUser.uid });
-          alert(`「${trimmed}」を追加しました！`);
-        }
-      }
-    };
-    document.getElementById("addMethodBtnInline").addEventListener("click", handleAddBank); document.getElementById("addBankBtnPage2").addEventListener("click", handleAddBank);
 
     document.getElementById("submitBtn").addEventListener("click", async () => {
       if (operation !== null) compute(); const amount = Number(currentVal); const category = document.getElementById("category").value; const paymentMethod = document.getElementById("paymentMethod").value; const memo = document.getElementById("memo").value; const dateString = document.getElementById("transactionDate").value;
