@@ -4,16 +4,17 @@ import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWith
 
 // ⚠️ Firebase Config (星翔の設定を上書きしてね)
 const firebaseConfig = {
-  apiKey: "AIzaSyXXXXXXXXXXXXXXX",
-  authDomain: "hybrid-kakeibo-XXXX.firebaseapp.com",
-  projectId: "hybrid-kakeibo-XXXX",
-  storageBucket: "hybrid-kakeibo-XXXX.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456"
+  apiKey: "AIzaSyB5UE_wkcBoBsaGo0warU40csxJAWi73-I",
+  authDomain: "hybrid-kakeibo.firebaseapp.com",
+  projectId: "hybrid-kakeibo",
+  storageBucket: "hybrid-kakeibo.firebasestorage.app",
+  messagingSenderId: "172145728222",
+  appId: "1:172145728222:web:bf5c35f9764b5152b0c04f",
+  measurementId: "G-5SV54CHL1W"
 };
 
 // 🚀 Google AI Studio で取得した Gemini APIキー
-const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
+const GEMINI_API_KEY = "AIzaSyAgLIOMAciS228NZyGJxmnbqIIJhdZEEA4";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
