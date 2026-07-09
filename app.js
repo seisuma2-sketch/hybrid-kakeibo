@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, setDoc, getDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, setDoc, getDoc, query, where, onSnapshot, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 // ⚠️ Firebase Config (星翔の設定を上書きしてね)
@@ -249,14 +249,33 @@ window.showCustomConfirm = function(msg) {
 
 // 口座の削除
 window.deleteMethod = async function(name) {
-  const isConfirmed = await showCustomConfirm(`「${name}」をシステムから抹消しますか？\n\n※過去の明細データは消えませんが、一覧には表示されなくなります。`);
+  // 1. ガチの警告を出す
+  const isConfirmed = await showCustomConfirm(`⚠️ 警告: 「${name}」をシステムから完全に抹消しますか？\n\n※これに紐づく【すべての過去の明細データ】も一緒に削除され、総資産額が変動します。この操作は取り消せません！`);
+  
   if(isConfirmed) {
-    currentMethods = currentMethods.filter(m => m !== name);
-    delete methodConfigs[name];
     if (auth.currentUser) {
-      await setDoc(doc(db, "user_settings", auth.currentUser.uid), { paymentMethods: currentMethods, methodConfigs: methodConfigs }, { merge: true });
-      renderMethods();
-      await showCustomAlert(`「${name}」を抹消しました。`);
+      try {
+        // 2. この口座に紐づく過去の全データを検索して一括削除（バッチ処理）
+        const q = query(collection(db, "transactions"), where("userId", "==", auth.currentUser.uid), where("paymentMethod", "==", name));
+        const querySnapshot = await getDocs(q);
+        
+        const batch = writeBatch(db);
+        querySnapshot.forEach((document) => {
+          batch.delete(document.ref);
+        });
+        await batch.commit(); // データベースから完全に消え去る
+
+        // 3. システムの口座リストから削除
+        currentMethods = currentMethods.filter(m => m !== name);
+        delete methodConfigs[name];
+        
+        await setDoc(doc(db, "user_settings", auth.currentUser.uid), { paymentMethods: currentMethods, methodConfigs: methodConfigs }, { merge: true });
+        
+        renderMethods();
+        await showCustomAlert(`「${name}」と関連する全データを完全に抹消しました。`);
+      } catch (error) {
+        await showCustomAlert("削除中にエラーが発生しました: " + error.message);
+      }
     }
   }
 };
@@ -450,3 +469,20 @@ function animateAmountHacking(targetAmount) {
   let ticks = 0; switchType('expense');
   const interval = setInterval(() => { currentVal = Math.floor(Math.random() * 99999).toString(); updateDisplay(); ticks++; if (ticks > 15) { clearInterval(interval); currentVal = targetAmount.toString(); updateDisplay(); } }, 50);
 }
+// --------------------------------=========
+// 🔄 下にスワイプで強制リロード (Pull-to-Refresh)
+// --------------------------------=========
+let touchStartY = 0;
+document.addEventListener('touchstart', e => { 
+  touchStartY = e.touches[0].clientY; 
+}, {passive: true});
+
+document.addEventListener('touchend', e => {
+  const touchEndY = e.changedTouches[0].clientY;
+  // 画面の一番上にいる状態で、下に150px以上スワイプされたらリロード
+  if (window.scrollY === 0 && (touchEndY - touchStartY > 150)) {
+    // 少しバイブレーションさせてリロード（対応スマホのみ）
+    if (navigator.vibrate) navigator.vibrate(50);
+    window.location.reload();
+  }
+}, {passive: true});
