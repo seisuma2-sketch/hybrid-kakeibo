@@ -59,7 +59,6 @@
     tr:hover td { background: #1c1f2d; color: #fff; }
     .clickable-row { cursor: pointer; transition: 0.2s; }
     .clickable-row:hover { background: rgba(0, 191, 255, 0.1) !important; border-left: 3px solid #00bfff; }
-    .hidden-data { color: #ff3366 !important; font-style: italic; }
 
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
     .lock-box { background: #0d0e12; border: 2px solid #ff3366; border-radius: 8px; padding: 40px; text-align: center; box-shadow: 0 0 30px rgba(255, 51, 102, 0.3); width: 320px; }
@@ -218,8 +217,7 @@
               <div style="background: rgba(0, 191, 255, 0.15); color: #00bfff; padding: 15px; text-align: center; font-weight: bold; border-bottom: 2px solid #00bfff; font-size: 16px; letter-spacing: 2px;">
                 資産の部 (借方)
               </div>
-              <div style="padding: 20px; flex: 1;" id="bsAssetList">
-                </div>
+              <div style="padding: 20px; flex: 1;" id="bsAssetList"></div>
               <div style="padding: 15px 20px; border-top: 1px dashed #252838; display: flex; justify-content: space-between; align-items: center; background: rgba(0, 191, 255, 0.05);">
                 <span style="color: #888; font-size: 14px;">資産合計</span>
                 <span style="color: #00bfff; font-family: monospace; font-size: 20px; font-weight: bold; text-shadow: 0 0 10px rgba(0,191,255,0.4);" id="bsAssetTotal">¥0</span>
@@ -230,8 +228,7 @@
               <div style="background: rgba(255, 51, 102, 0.15); color: #ff3366; padding: 15px; text-align: center; font-weight: bold; border-bottom: 2px solid #ff3366; font-size: 16px; letter-spacing: 2px;">
                 負債の部 (貸方)
               </div>
-              <div style="padding: 20px;" id="bsLiabilityList">
-                </div>
+              <div style="padding: 20px;" id="bsLiabilityList"></div>
 
               <div style="background: rgba(0, 255, 102, 0.15); color: #00ff66; padding: 15px; text-align: center; font-weight: bold; border-bottom: 2px solid #00ff66; border-top: 2px solid #252838; font-size: 16px; letter-spacing: 2px;">
                 純資産の部 (貸方)
@@ -263,7 +260,7 @@
     import { getFirestore, collection, query, where, onSnapshot, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-    // ⚠️ Firebase Configを入れてね！
+    // ⚠️ Firebase Config
     const firebaseConfig = {
   apiKey: "AIzaSyB5UE_wkcBoBsaGo0warU40csxJAWi73-I",
   authDomain: "hybrid-kakeibo.firebaseapp.com",
@@ -284,51 +281,31 @@
     let eTrendChart = null, eCategoryChart = null; let eHomeTrendChart = null, eHomeCategoryChart = null; let d3Simulation = null;
     let isBalanceUnlocked = false; let pendingTabElement = null; let isStealthMode = true; 
     let globalTransactionData = []; let allMethodsList = new Set(); let allCategoriesList = new Set(); let stealthTargets = { methods: [], categories: [] };
-    let globalCurrentCalculatedBalance = 0;
-
-    // 💡 ペアリング・カードタイプ設定の初期値
-    let methodConfigs = {
-      "現金": { type: "asset" },
-      "ゆうちょ銀行": { type: "asset" },
-      "郵カード": { type: "debit", linkedBank: "ゆうちょ銀行" },
-      "クレジットカード": { type: "credit", linkedBank: "ゆうちょ銀行" }
-    };
+    let methodConfigs = { "現金": { type: "asset" }, "ゆうちょ銀行": { type: "asset" }, "郵カード": { type: "debit", linkedBank: "ゆうちょ銀行" }, "クレジットカード": { type: "credit", linkedBank: "ゆうちょ銀行" } };
 
     function toHalfWidth(str) { return str.replace(/[０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); }).trim(); }
 
     window.switchTab = function(tabId, element) {
-      if (tabId === 'tab-balance' && !isBalanceUnlocked) {
-        pendingTabElement = element; document.getElementById('balanceLockOverlay').style.display = 'flex'; document.getElementById('balancePass').focus(); return;
-      }
+      if (tabId === 'tab-balance' && !isBalanceUnlocked) { pendingTabElement = element; document.getElementById('balanceLockOverlay').style.display = 'flex'; document.getElementById('balancePass').focus(); return; }
       document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active')); document.getElementById(tabId).classList.add('active');
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); element.classList.add('active');
       setTimeout(() => { if(eTrendChart) eTrendChart.resize(); if(eCategoryChart) eCategoryChart.resize(); }, 100);
     };
 
     window.unlockBalance = function() {
-      if (toHalfWidth(document.getElementById('balancePass').value) == BALANCE_PASSKEY) {
-        isBalanceUnlocked = true; document.getElementById('balanceLockOverlay').style.display = 'none'; document.getElementById('balancePass').value = ""; switchTab('tab-balance', pendingTabElement);
-      } else { alert("ACCESS DENIED"); document.getElementById('balancePass').value = ""; }
+      if (toHalfWidth(document.getElementById('balancePass').value) == BALANCE_PASSKEY) { isBalanceUnlocked = true; document.getElementById('balanceLockOverlay').style.display = 'none'; document.getElementById('balancePass').value = ""; switchTab('tab-balance', pendingTabElement); } else { alert("ACCESS DENIED"); document.getElementById('balancePass').value = ""; }
     };
     window.cancelBalanceUnlock = function() { document.getElementById('balanceLockOverlay').style.display = 'none'; document.getElementById('balancePass').value = ""; };
     document.getElementById('balancePass').addEventListener('keypress', (e) => { if (e.key === 'Enter') unlockBalance(); });
 
     window.addEventListener('keydown', async (e) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'Enter') { try { await setPersistence(auth, browserSessionPersistence); await signInWithEmailAndPassword(auth, DEV_EMAIL, DEV_PASSWORD); } catch (error) { alert("裏口ログイン失敗"); } }
-      if (e.ctrlKey && e.shiftKey && (e.key === 'x' || e.key === 'X')) {
-        e.preventDefault();
-        if (isStealthMode) { document.getElementById('stealthLockOverlay').style.display = 'flex'; document.getElementById('stealthPass').focus(); } else { isStealthMode = true; updateStealthBtnUI(); renderDashboard(); }
-      }
+      if (e.ctrlKey && e.shiftKey && (e.key === 'x' || e.key === 'X')) { e.preventDefault(); if (isStealthMode) { document.getElementById('stealthLockOverlay').style.display = 'flex'; document.getElementById('stealthPass').focus(); } else { isStealthMode = true; updateStealthBtnUI(); renderDashboard(); } }
     });
 
-    window.unlockStealth = function() {
-      if (toHalfWidth(document.getElementById('stealthPass').value) == STEALTH_PASSKEY) {
-        isStealthMode = false; document.getElementById('stealthLockOverlay').style.display = 'none'; document.getElementById('stealthPass').value = ""; updateStealthBtnUI(); renderDashboard(); 
-      } else { alert("ACCESS DENIED"); document.getElementById('stealthPass').value = ""; }
-    };
+    window.unlockStealth = function() { if (toHalfWidth(document.getElementById('stealthPass').value) == STEALTH_PASSKEY) { isStealthMode = false; document.getElementById('stealthLockOverlay').style.display = 'none'; document.getElementById('stealthPass').value = ""; updateStealthBtnUI(); renderDashboard(); } else { alert("ACCESS DENIED"); document.getElementById('stealthPass').value = ""; } };
     window.cancelStealthUnlock = function() { document.getElementById('stealthLockOverlay').style.display = 'none'; document.getElementById('stealthPass').value = ""; };
     document.getElementById('stealthPass').addEventListener('keypress', (e) => { if (e.key === 'Enter') unlockStealth(); });
-
     function updateStealthBtnUI() { const configBtn = document.getElementById('stealthConfigBtn'); if (isStealthMode) configBtn.style.display = 'none'; else configBtn.style.display = 'block'; }
 
     window.openStealthConfig = function() {
@@ -345,16 +322,31 @@
     };
     window.closeStealthConfig = function() { document.getElementById('stealthConfigModal').style.display = 'none'; };
 
+    // 💡 詳細モーダル内のグラフも「年/月/日 (YYYY/MM/DD)」対応
     window.openMethodModal = function(methodName) {
       if(isStealthMode && stealthTargets.methods.includes(methodName)) return; 
       document.getElementById('methodModal').style.display = 'flex'; document.getElementById('modalMethodTitle').innerText = `■ ${methodName} の詳細分析`;
       const filteredData = globalTransactionData.filter(d => (d.paymentMethod || "未設定") === methodName);
       const dailyIncome = {}; const dailyExpense = {};
-      filteredData.forEach(d => { const amt = d.amount || 0; const dayKey = `${d.date.toDate().getMonth()+1}/${d.date.toDate().getDate()}`; if (d.type === "income") { dailyIncome[dayKey] = (dailyIncome[dayKey] || 0) + amt; } else { dailyExpense[dayKey] = (dailyExpense[dayKey] || 0) + amt; } });
-      const allDays = [...new Set([...Object.keys(dailyIncome), ...Object.keys(dailyExpense)])]; const sortedDays = allDays.sort((a, b) => { const [mA, dA] = a.split('/').map(Number); const [mB, dB] = b.split('/').map(Number); return mA !== mB ? mA - mB : dA - dB; });
+      
+      filteredData.forEach(d => { 
+        const amt = d.amount || 0; 
+        const dateObj = d.date ? d.date.toDate() : new Date();
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const dayKey = `${year}/${month}/${day}`; // YYYY/MM/DD フォーマット
+        
+        if (d.type === "income") { dailyIncome[dayKey] = (dailyIncome[dayKey] || 0) + amt; } else { dailyExpense[dayKey] = (dailyExpense[dayKey] || 0) + amt; } 
+      });
+      
+      const allDays = [...new Set([...Object.keys(dailyIncome), ...Object.keys(dailyExpense)])]; 
+      const sortedDays = allDays.sort(); // YYYY/MM/DD なので単純な文字ソートで完璧に並ぶ
+      
       const incomeArr = sortedDays.map(d => dailyIncome[d] || 0); const expenseArr = sortedDays.map(d => dailyExpense[d] || 0);
-      const ctx = document.getElementById('modalMethodChart').getContext('2d'); if (modalChartObj) modalChartObj.destroy();
-      modalChartObj = new Chart(ctx, { type: 'bar', data: { labels: sortedDays, datasets: [ { label: '収入', data: incomeArr, backgroundColor: '#00ff66', borderRadius: 4 }, { label: '支出', data: expenseArr, backgroundColor: '#ff3366', borderRadius: 4 } ] }, options: { responsive: true, maintainAspectRatio: false, color: '#ccc', scales: { x: { grid: { color: '#252838' }, ticks: { color: '#aaa' } }, y: { grid: { color: '#252838' }, ticks: { color: '#aaa' } } } } });
+      const ctx = document.getElementById('modalMethodChart').getContext('2d'); if (window.modalChartObj) window.modalChartObj.destroy();
+      
+      window.modalChartObj = new Chart(ctx, { type: 'bar', data: { labels: sortedDays, datasets: [ { label: '収入', data: incomeArr, backgroundColor: '#00ff66', borderRadius: 4 }, { label: '支出', data: expenseArr, backgroundColor: '#ff3366', borderRadius: 4 } ] }, options: { responsive: true, maintainAspectRatio: false, color: '#ccc', scales: { x: { grid: { color: '#252838' }, ticks: { color: '#aaa' } }, y: { grid: { color: '#252838' }, ticks: { color: '#aaa' } } } } });
     };
     window.closeMethodModal = function() { document.getElementById('methodModal').style.display = 'none'; };
 
@@ -362,21 +354,17 @@
       if (user) { 
         document.getElementById('authScreen').style.display = 'none'; document.getElementById('dashboardContent').style.display = 'flex'; document.getElementById('userNameDisplay').innerText = `ID: ${user.email}`; 
         const userRef = doc(db, "user_settings", user.uid); const snap = await getDoc(userRef);
-        if (snap.exists()) {
-          const data = snap.data();
-          if (data.stealthTargets) stealthTargets = data.stealthTargets;
-          if (data.methodConfigs) methodConfigs = data.methodConfigs; // 💡 スマホ版の設定をロード
-        }
+        if (snap.exists()) { const data = snap.data(); if (data.stealthTargets) stealthTargets = data.stealthTargets; if (data.methodConfigs) methodConfigs = data.methodConfigs; }
         eTrendChart = echarts.init(document.getElementById('trendChart')); eCategoryChart = echarts.init(document.getElementById('categoryChart')); eHomeTrendChart = echarts.init(document.getElementById('homeTrendChart')); eHomeCategoryChart = echarts.init(document.getElementById('homeCategoryChart'));
         startDataSync(user.uid); 
       } else { 
-        document.getElementById('authScreen').style.display = 'flex'; document.getElementById('dashboardContent').style.display = 'none'; isBalanceUnlocked = false; isStealthMode = true; updateStealthBtnUI(); if (unsubscribe) unsubscribe(); 
+        document.getElementById('authScreen').style.display = 'flex'; document.getElementById('dashboardContent').style.display = 'none'; isBalanceUnlocked = false; isStealthMode = true; updateStealthBtnUI(); if (window.unsubscribe) window.unsubscribe(); 
       }
     });
 
     function startDataSync(uid) {
       const q = query(collection(db, "transactions"), where("userId", "==", uid));
-      unsubscribe = onSnapshot(q, (snapshot) => {
+      window.unsubscribe = onSnapshot(q, (snapshot) => {
         globalTransactionData = snapshot.docs.map(doc => doc.data());
         globalTransactionData.sort((a, b) => (b.date ? b.date.toMillis() : 0) - (a.date ? a.date.toMillis() : 0));
         allMethodsList.clear(); allCategoriesList.clear();
@@ -386,10 +374,8 @@
     }
 
     function renderDashboard() {
-      let totalIncomeSum = 0; let totalExpenseSum = 0; 
-      let totalCapital = 0; let totalPLProfit = 0; 
-      const categoriesData = {}; const dailyData = {}; 
-      const methodAssets = {}; // 生データの格納先
+      let totalIncomeSum = 0; let totalExpenseSum = 0; let totalCapital = 0; let totalPLProfit = 0; 
+      const categoriesData = {}; const dailyData = {}; const methodAssets = {}; 
       let tableHtml = "";
 
       globalTransactionData.forEach((data) => {
@@ -400,11 +386,8 @@
         const amount = data.amount || 0;
         const config = methodConfigs[method] || { type: "asset" };
         
-        // 💡 1. デビット型かクレジット型かアセット型かに応じて裏の集計口座をスイッチ
         let targetAccount = method;
-        if (config.type === "debit" && config.linkedBank) {
-          targetAccount = config.linkedBank; // デビットなら裏の銀行口座に直撃
-        }
+        if (config.type === "debit" && config.linkedBank) { targetAccount = config.linkedBank; }
 
         if (category === "初期残高設定") {
           totalCapital += amount;
@@ -422,14 +405,25 @@
         }
         
         categoriesData[category] = (categoriesData[category] || 0) + amount;
-        const dateObj = data.date ? data.date.toDate() : new Date(); const dayKey = `${dateObj.getMonth()+1}/${dateObj.getDate()}`;
+        
+        // 💡 グラフとテーブル用の「年/月/日 (YYYY/MM/DD)」生成
+        const dateObj = data.date ? data.date.toDate() : new Date(); 
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const dayKey = `${year}/${month}/${day}`;
+        
         dailyData[dayKey] = (dailyData[dayKey] || 0) + (type === "income" ? amount : -amount);
-        const dateString = `${dateObj.getMonth()+1}/${dateObj.getDate()} ${dateObj.getHours().toString().padStart(2,'0')}:${dateObj.getMinutes().toString().padStart(2,'0')}`;
+        
+        // テーブルの表示も年を含むようにアップデート
+        const hours = String(dateObj.getHours()).padStart(2, '0');
+        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+        const dateString = `${year}/${month}/${day} ${hours}:${minutes}`;
+        
         const typeBadge = type === "income" ? `<span style="color:#00ff66;">[収入]</span>` : `<span style="color:#ff3366;">[支出]</span>`;
         tableHtml += `<tr><td>${dateString}</td><td>${typeBadge}</td><td>${category}</td><td><span style="color:#00bfff;">${method}</span></td><td>${data.memo || '-'}</td><td style="text-align: right; ${type === "income" ? "color:#00ff66;" : "color:#ff3366;"} font-weight:bold;">${type === "income" ? "+" : "-"}¥${amount.toLocaleString()}</td></tr>`;
       });
       
-      // 総資産メーターの計算（クレカ負債は除外した純粋な手元資産総額）
       let grandTotalAsset = 0;
       Object.keys(methodAssets).forEach(k => {
         const config = methodConfigs[k] || { type: "asset" };
@@ -441,69 +435,46 @@
       document.getElementById("totalExpense").innerText = `¥${totalExpenseSum.toLocaleString()}`;
       document.getElementById("transactionRowsHome").innerHTML = tableHtml;
 
-      // 💡 2. BS (貸借対照表) ＆ 資産管理テーブルのレンダリング
-      let assetHtml = "";
-      let bsAssetHtml = "";
-      let bsLiabilityHtml = "";
-      let assetTotalSum = 0;
-      let liabilityTotalSum = 0;
+      let assetHtml = ""; let bsAssetHtml = ""; let bsLiabilityHtml = ""; let assetTotalSum = 0; let liabilityTotalSum = 0;
 
-      // 登録されている全ての決済手段を走査
       Object.keys(methodConfigs).forEach(k => {
-        const config = methodConfigs[k];
-        const bal = methodAssets[k] || 0;
-
-        // 残高管理タブ用の一覧表（デビットは銀行に統合されるため表示不要）
+        const config = methodConfigs[k]; const bal = methodAssets[k] || 0;
         if (config.type !== "debit") {
           const color = bal >= 0 ? "#00ff66" : "#ff3366";
           assetHtml += `<tr class="clickable-row" onclick="openMethodModal('${k}')"><td>${k}</td><td style="text-align: right; color:${color}; font-family:monospace; font-weight:bold;">¥${bal.toLocaleString()}</td></tr>`;
         }
-
-        // 🚨 BS用の自動仕訳・マッピング
         if (config.type === "asset") {
           assetTotalSum += bal;
-          bsAssetHtml += `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 0 10px;">
-              <span style="color: #ccc; font-size: 14px;">${k} <span class="badge-bs" style="color:#00bfff; border:1px solid #00bfff;">資産</span></span>
-              <span style="color: #00bfff; font-family: monospace; font-size: 15px; font-weight:bold;">¥ ${bal.toLocaleString()}</span>
-            </div>`;
+          bsAssetHtml += `<div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 0 10px;"><span style="color: #ccc; font-size: 14px;">${k} <span class="badge-bs" style="color:#00bfff; border:1px solid #00bfff;">資産</span></span><span style="color: #00bfff; font-family: monospace; font-size: 15px; font-weight:bold;">¥ ${bal.toLocaleString()}</span></div>`;
         } else if (config.type === "credit") {
-          // クレカのマイナス残高＝未払金（負債）
           const liabilityVal = bal < 0 ? Math.abs(bal) : 0;
           liabilityTotalSum += liabilityVal;
-          bsLiabilityHtml += `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 0 10px;">
-              <span style="color: #ccc; font-size: 14px;">${k} <span class="badge-bs" style="color:#ff3366; border:1px solid #ff3366;">負債</span></span>
-              <span style="color: #ff3366; font-family: monospace; font-size: 15px; font-weight:bold;">¥ ${liabilityVal.toLocaleString()}</span>
-            </div>`;
+          bsLiabilityHtml += `<div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 0 10px;"><span style="color: #ccc; font-size: 14px;">${k} <span class="badge-bs" style="color:#ff3366; border:1px solid #ff3366;">負債</span></span><span style="color: #ff3366; font-family: monospace; font-size: 15px; font-weight:bold;">¥ ${liabilityVal.toLocaleString()}</span></div>`;
         }
       });
 
       document.getElementById("assetTableRows").innerHTML = assetHtml;
       document.getElementById("bsAssetList").innerHTML = bsAssetHtml || `<p style="color:#555; text-align:center;">資産データなし</p>`;
       document.getElementById("bsLiabilityList").innerHTML = bsLiabilityHtml || `<p style="color:#555; text-align:center;">負債データなし</p>`;
-      
-      // 純資産の計算と同期
       document.getElementById("bsCapitalValue").innerText = `¥ ${totalCapital.toLocaleString()}`;
       const reColor = totalPLProfit >= 0 ? "#00ff66" : "#ff3366";
       document.getElementById("bsRetainedEarningsValue").style.color = reColor;
       document.getElementById("bsRetainedEarningsValue").innerText = `${totalPLProfit >= 0 ? "" : "-"}¥ ${Math.abs(totalPLProfit).toLocaleString()}`;
-
-      // 左右の合計値を算出してセット
       const rightTotalSum = liabilityTotalSum + totalCapital + totalPLProfit;
       document.getElementById("bsAssetTotal").innerText = `¥ ${assetTotalSum.toLocaleString()}`;
       document.getElementById("bsLiabilityEquityTotal").innerText = `¥ ${rightTotalSum.toLocaleString()}`;
 
       updateECharts(categoriesData, dailyData);
       
-      // D3バブル用データ（デビット以外を流し込む）
       const d3Data = {};
       Object.keys(methodAssets).forEach(key => { if(methodConfigs[key] && methodConfigs[key].type !== "debit") d3Data[key] = methodAssets[key]; });
       drawD3Simulation(d3Data);
     }
 
     function updateECharts(categories, daily) {
-      const sortedDays = Object.keys(daily).sort((a, b) => { const [mA, dA] = a.split('/').map(Number); const [mB, dB] = b.split('/').map(Number); return mA !== mB ? mA - mB : dA - dB; });
+      // 💡 年/月/日 (YYYY/MM/DD) ベースの完全なソートアルゴリズム
+      const sortedDays = Object.keys(daily).sort(); 
+      
       const trendData = sortedDays.map(day => daily[day]);
       const trendOption = { backgroundColor: 'transparent', tooltip: { trigger: 'axis', backgroundColor: 'rgba(0,0,0,0.8)', borderColor: '#00bfff', textStyle: { color: '#fff' } }, grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true }, xAxis: { type: 'category', data: sortedDays, axisLine: { lineStyle: { color: '#252838' } }, axisLabel: { color: '#aaa' } }, yAxis: { type: 'value', splitLine: { lineStyle: { color: '#252838' } }, axisLabel: { color: '#aaa' } }, series: [{ data: trendData, type: 'line', smooth: true, symbol: 'circle', symbolSize: 8, itemStyle: { color: '#00bfff', borderColor: '#fff', borderWidth: 2 }, lineStyle: { width: 4, color: '#00bfff', shadowColor: '#00bfff', shadowBlur: 15, shadowOffsetY: 5 }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(0, 191, 255, 0.5)' }, { offset: 1, color: 'rgba(0, 191, 255, 0.0)' }]) }, animationDuration: 2000, animationEasing: 'cubicOut' }] };
       if(eTrendChart) eTrendChart.setOption(trendOption); const miniTrendOpt = JSON.parse(JSON.stringify(trendOption)); miniTrendOpt.xAxis.show = false; miniTrendOpt.yAxis.show = false; miniTrendOpt.grid = { left: 0, right: 0, top: 10, bottom: 0 }; if(eHomeTrendChart) eHomeTrendChart.setOption(miniTrendOpt);
