@@ -4,6 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ハイブリッド家計簿</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d0e12">
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/0d0e12/00ff66.png?text=K">
+  
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('SW登録成功:', reg.scope))
+          .catch(err => console.log('SW登録失敗:', err));
+      });
+    }
+  </script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-cyber">
@@ -137,10 +151,10 @@
       <input type="text" id="newMethodName" placeholder="例: 三井住友銀行, 郵カード, クレカ">
       <label>種類（仕訳タイプ）</label>
       <div class="type-segment">
-        <div class="segment-btn active" id="segAsset" onclick="selectModalType('asset')">銀行・現金</div>
+        <div class="segment-btn active" id="segAsset" onclick="selectModalType('asset')">現金・口座</div>
+        <div class="segment-btn" id="segAssetDebit" onclick="selectModalType('asset-debit')">銀行(一体型)</div>
         <div class="segment-btn" id="segCredit" onclick="selectModalType('credit')">クレジット</div>
-        <div class="segment-btn" id="segDebit" onclick="selectModalType('debit')">デビット</div>
-      </div>
+        <div class="segment-btn" id="segDebit" onclick="selectModalType('debit')">専用デビット</div></div>
       <div id="modalLinkedWrapper" class="linked-bank-wrapper">
         <label style="color: #ffaa00;">🔗 つながる引き落とし銀行口座</label>
         <select id="newMethodLink"></select>

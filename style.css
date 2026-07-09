@@ -415,6 +415,10 @@ body.theme-cyber .balance-total-box .total-val {
 .bank-name {
   font-weight: bold;
   font-size: 16px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap; /* 横幅が足りない時はバッジごと下に逃がす */
+  gap: 4px; /* バッジ同士の隙間を綺麗に保つ */
 }
 
 .bank-right {
@@ -434,9 +438,23 @@ body.theme-cyber .balance-total-box .total-val {
 body.theme-cyber .bank-balance.plus { color: #00ff66; }
 body.theme-cyber .bank-balance.minus { color: #ff3366; }
 
-.badge-debit { font-size: 10px; padding: 2px 6px; border-radius: 12px; margin-left: 5px; vertical-align: middle; }
-.badge-credit { font-size: 10px; color: #ffaa00; border: 1px solid #ffaa00; padding: 2px 6px; border-radius: 12px; margin-left: 5px; vertical-align: middle; }
+.badge-debit {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 12px;
+  white-space: nowrap; /* 👈 絶対に文字を改行させない魔法 */
+  display: inline-block;
+}
 
+.badge-credit {
+  font-size: 10px;
+  color: #ffaa00;
+  border: 1px solid #ffaa00;
+  padding: 2px 6px;
+  border-radius: 12px;
+  white-space: nowrap; /* 👈 絶対に文字を改行させない魔法 */
+  display: inline-block;
+}
 /* ボトムナビ */
 .bottom-nav {
   position: fixed;

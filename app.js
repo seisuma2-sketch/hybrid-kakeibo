@@ -178,6 +178,7 @@ function renderBalancesUI() {
   const container = document.getElementById("bankListContainer");
   container.innerHTML = "";
   Object.keys(cachedBalances).forEach(name => {
+    if (!currentMethods.includes(name)) return;
     if ((stealthTargets.methods || []).includes(name)) return;
     const config = methodConfigs[name] || {type:"asset"};
     const bal = cachedBalances[name];
@@ -304,11 +305,28 @@ window.openAddMethodModal = function() {
 window.closeAddMethodModal = function(e) { if (e === null || e.target === document.getElementById("addMethodModal")) { const modal = document.getElementById("addMethodModal"); modal.classList.remove("open"); setTimeout(() => modal.style.display = "none", 300); } };
 
 window.selectModalType = function(type) {
-  modalSelectedType = type; document.querySelectorAll(".segment-btn").forEach(btn => btn.classList.remove("active"));
-  const linkWrapper = document.getElementById("modalLinkedWrapper"); const balanceWrapper = document.getElementById("modalInitialBalanceWrapper");
-  if (type === "asset") { document.getElementById("segAsset").classList.add("active"); linkWrapper.classList.remove("show"); balanceWrapper.style.display = "block"; } 
-  else if (type === "asset-debit") { document.getElementById("segAssetDebit").classList.add("active"); linkWrapper.classList.remove("show"); balanceWrapper.style.display = "block"; } 
-  else if (type === "credit") { document.getElementById("segCredit").classList.add("active"); linkWrapper.classList.add("show"); balanceWrapper.style.display = "none"; } 
+  modalSelectedType = type; 
+  document.querySelectorAll(".segment-btn").forEach(btn => btn.classList.remove("active"));
+  const linkWrapper = document.getElementById("modalLinkedWrapper"); 
+  const balanceWrapper = document.getElementById("modalInitialBalanceWrapper");
+  
+  if (type === "asset") { 
+    document.getElementById("segAsset").classList.add("active"); 
+    linkWrapper.classList.remove("show"); 
+    balanceWrapper.style.display = "block"; 
+  } else if (type === "asset-debit") { 
+    document.getElementById("segAssetDebit").classList.add("active"); 
+    linkWrapper.classList.remove("show"); 
+    balanceWrapper.style.display = "block"; 
+  } else if (type === "credit") { 
+    document.getElementById("segCredit").classList.add("active"); 
+    linkWrapper.classList.add("show"); 
+    balanceWrapper.style.display = "none"; 
+  } else if (type === "debit") { 
+    document.getElementById("segDebit").classList.add("active"); 
+    linkWrapper.classList.add("show"); 
+    balanceWrapper.style.display = "none"; 
+  }
 };
 
 window.executeAddMethod = async function() {
@@ -316,19 +334,32 @@ window.executeAddMethod = async function() {
   if(!nameInp || nameInp.trim() === "") { await showCustomAlert("名称を入力してね！"); return; }
   const trimmedName = nameInp.trim();
   if (currentMethods.includes(trimmedName)) { await showCustomAlert("すでに登録されているよ！"); return; }
+  
   let configObj = { type: modalSelectedType };
-  if (modalSelectedType === "credit") {
+  
+  // 💡 クレジットと専用デビットの場合は引き落とし元を必須にする
+  if (modalSelectedType === "credit" || modalSelectedType === "debit") {
     const linked = document.getElementById("newMethodLink").value;
     if(!linked) { await showCustomAlert("連動させる口座（銀行）を先に作ってね！"); return; }
     configObj.linkedBank = linked;
   }
-  currentMethods.push(trimmedName); methodConfigs[trimmedName] = configObj;
-  renderMethods(); document.getElementById("paymentMethod").value = trimmedName; document.getElementById("paymentMethod").dispatchEvent(new Event('change'));
+  
+  currentMethods.push(trimmedName); 
+  methodConfigs[trimmedName] = configObj;
+  renderMethods(); 
+  document.getElementById("paymentMethod").value = trimmedName; 
+  document.getElementById("paymentMethod").dispatchEvent(new Event('change'));
+  
   if (auth.currentUser) {
     await setDoc(doc(db, "user_settings", auth.currentUser.uid), { paymentMethods: currentMethods, methodConfigs: methodConfigs }, { merge: true });
     const initialBal = Number(document.getElementById("newMethodBalance").value);
-    if ((modalSelectedType === "asset" || modalSelectedType === "asset-debit") && initialBal > 0) await addDoc(collection(db, "transactions"), { amount: initialBal, category: "初期残高設定", type: "income", paymentMethod: trimmedName, memo: "システム自動初期設定", date: new Date(), userId: auth.currentUser.uid });
-    closeAddMethodModal(null); await showCustomAlert(`「${trimmedName}」をシステムに登録したよ！`);
+    
+    // 💡 初期残高を入れるのは「口座」か「一体型銀行」のみ
+    if ((modalSelectedType === "asset" || modalSelectedType === "asset-debit") && initialBal > 0) {
+      await addDoc(collection(db, "transactions"), { amount: initialBal, category: "初期残高設定", type: "income", paymentMethod: trimmedName, memo: "システム自動初期設定", date: new Date(), userId: auth.currentUser.uid });
+    }
+    closeAddMethodModal(null); 
+    await showCustomAlert(`「${trimmedName}」をシステムに登録したよ！`);
   }
 };
 

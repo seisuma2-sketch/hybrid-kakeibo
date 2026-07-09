@@ -3,6 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <title>ハイブリッド家計簿 - 分析ダッシュボード</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d0e12">
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/0d0e12/00ff66.png?text=K">
+  
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('SW登録成功:', reg.scope))
+          .catch(err => console.log('SW登録失敗:', err));
+      });
+    }
+  </script>
   
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
