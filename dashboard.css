@@ -237,7 +237,7 @@ body {
 .clickable-card::after {
   content: '詳細を見る ＞';
   position: absolute;
-  top: 20px;
+  bottom: 15px;
   right: 20px;
   font-size: 12px;
   color: #00ff66;
@@ -519,4 +519,122 @@ tr:hover td {
   border-radius: 12px;
   margin-left: 8px;
   font-weight: normal;
+}
+
+/* --------------------------------=========
+   📅 サイバーカレンダー用スタイル
+--------------------------------========= */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  flex: 1;
+}
+
+.calendar-header-day {
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid #252838;
+}
+
+.calendar-cell {
+  background: #11141a;
+  border: 1px solid #252838;
+  border-radius: 6px;
+  padding: 8px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  transition: 0.2s;
+}
+
+.calendar-cell:hover {
+  border-color: #00ff66;
+  background: #1a231f;
+  box-shadow: 0 0 15px rgba(0, 255, 102, 0.15);
+}
+
+.calendar-date {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+/* 💡 今日の日付だけサイバーグリーンに発光させる */
+.calendar-cell.today {
+  border-color: #00ff66;
+  background: rgba(0, 255, 102, 0.05);
+}
+.calendar-cell.today .calendar-date {
+  color: #000;
+  background: #00ff66;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px #00ff66;
+}
+
+/* 金額のスタイル */
+.cal-income { color: #00bfff; font-size: 12px; text-align: right; font-weight: bold; margin-top: 2px; }
+.cal-expense { color: #ff3366; font-size: 12px; text-align: right; font-weight: bold; margin-top: 2px; }
+
+.calendar-cell {
+  /* 既存のスタイルにこれを1行追加 */
+  cursor: pointer; 
+}
+
+/* --------------------------------=========
+   🔓 ポップアップモーダル用スタイル (PC版)
+--------------------------------========= */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(5px);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0; /* 最初は透明 */
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.custom-modal-overlay.open {
+  opacity: 1; /* openクラスがついたら表示 */
+  pointer-events: auto;
+}
+
+.custom-modal-card {
+  background: #0d0e12;
+  border: 1px solid #00ff66;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0, 255, 102, 0.2);
+  transform: translateY(20px); /* 最初は少し下から */
+  transition: transform 0.3s ease;
+}
+
+.custom-modal-overlay.open .custom-modal-card {
+  transform: translateY(0); /* 定位置へスライド */
+}
+
+.modal-header-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  color: #00ff66;
+  font-weight: bold;
+  border-bottom: 1px solid #252838;
+  padding-bottom: 15px;
+  letter-spacing: 1px;
 }

@@ -54,21 +54,30 @@ function toHalfWidth(str) {
 // --------------------------------=========
 // 💡 UI・タブ・モーダル制御
 // --------------------------------=========
-window.switchTab = function(tabId, element) {
-  if (tabId === 'tab-balance' && !isBalanceUnlocked) {
-    pendingTabElement = element;
-    document.getElementById('balanceLockOverlay').style.display = 'flex';
-    document.getElementById('balancePass').focus();
-    return;
-  }
+window.switchTab = function(tabId) {
   document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  element.classList.add('active');
-  setTimeout(() => { 
-    if(eTrendChart) eTrendChart.resize(); 
-    if(eCategoryChart) eCategoryChart.resize(); 
-  }, 100);
+
+  const baseName = tabId.replace('tab-', '').replace('nav-', '');
+  const targetTab = document.getElementById('tab-' + baseName);
+  const targetNav = document.getElementById('nav-' + baseName);
+
+  if (targetTab) {
+    targetTab.classList.add('active');
+    
+    // 💡 魔法のコード：タブが開いた直後にグラフを「全画面サイズ」に再計算（リサイズ）させる！
+    setTimeout(() => {
+      if (typeof eTrendChart !== 'undefined' && eTrendChart) eTrendChart.resize();
+      if (typeof eHomeTrendChart !== 'undefined' && eHomeTrendChart) eHomeTrendChart.resize();
+      if (typeof eCategoryChart !== 'undefined' && eCategoryChart) eCategoryChart.resize();
+      if (typeof eHomeCategoryChart !== 'undefined' && eHomeCategoryChart) eHomeCategoryChart.resize();
+    }, 50);
+
+  } else {
+    console.error(`⚠️ エラー: HTML内に id="tab-${baseName}" の箱が見つかりません！`);
+  }
+
+  if (targetNav) targetNav.classList.add('active');
 };
 
 window.unlockBalance = function() {
@@ -430,64 +439,265 @@ document.getElementById("homeTotalAsset").innerText = `¥${grandTotalAsset.toLoc
   document.getElementById("bsLiabilityEquityTotal").innerText = `¥ ${rightTotalSum.toLocaleString()}`;
 
   updateECharts(categoriesData, dailyData);
+
+  const chronologicalData = [...globalTransactionData].reverse(); // 古い順に並べる
+  const runningBalances = {};
+  const dailyAccountBalances = {};
+  
+  // 💡 修正：dashboard.js用の正しい変数（methodConfigsのキー）に直す！
+  const accountNames = Object.keys(methodConfigs);
+  
+  accountNames.forEach(m => {
+    runningBalances[m] = 0;
+    dailyAccountBalances[m] = {};
+  });
+
+  chronologicalData.forEach(d => {
+    const method = d.paymentMethod;
+    // 💡 修正：正しいリストでチェックする！
+    if(!method || !accountNames.includes(method)) return;
+    const amt = d.amount || 0;
+    if (d.type === "income") runningBalances[method] += amt;
+    else runningBalances[method] -= amt;
+    
+    const dateObj = d.date ? d.date.toDate() : new Date();
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const dateStr = `${y}/${m}/${day}`; // YYYY/MM/DD
+    
+    // その日の最終残高を上書き記録していく
+    dailyAccountBalances[method][dateStr] = runningBalances[method];
+  });
+
+  // 💡 新しく作った口座別残高データをグラフエンジンに渡す
+  updateECharts(categoriesData, dailyAccountBalances);
+
+  renderCalendar();
   
   const d3Data = {};
   Object.keys(methodAssets).forEach(key => { d3Data[key] = methodAssets[key]; });
   drawD3Simulation(d3Data);
 }
 
-function updateECharts(categories, daily) {
-  const sortedDays = Object.keys(daily).sort(); 
-  const trendData = sortedDays.map(day => daily[day]);
-  
-  const trendOption = {
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'axis', backgroundColor: 'rgba(0,0,0,0.8)', borderColor: '#00bfff', textStyle: { color: '#fff' } },
-    grid: { left: '3%', right: '4%', bottom: '3%', top: '10%', containLabel: true },
-    xAxis: { type: 'category', data: sortedDays, axisLine: { lineStyle: { color: '#252838' } }, axisLabel: { color: '#aaa' } },
-    yAxis: { type: 'value', splitLine: { lineStyle: { color: '#252838' } }, axisLabel: { color: '#aaa' } },
-    series: [{
-      data: trendData, type: 'line', smooth: true, symbol: 'circle', symbolSize: 8,
-      itemStyle: { color: '#00bfff', borderColor: '#fff', borderWidth: 2 },
-      lineStyle: { width: 4, color: '#00bfff', shadowColor: '#00bfff', shadowBlur: 15, shadowOffsetY: 5 },
-      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(0, 191, 255, 0.5)' }, { offset: 1, color: 'rgba(0, 191, 255, 0.0)' }]) },
-      animationDuration: 2000, animationEasing: 'cubicOut'
-    }]
-  };
-  
-  if(eTrendChart) eTrendChart.setOption(trendOption);
-  const miniTrendOpt = JSON.parse(JSON.stringify(trendOption));
-  miniTrendOpt.xAxis.show = false; miniTrendOpt.yAxis.show = false; miniTrendOpt.grid = { left: 0, right: 0, top: 10, bottom: 0 };
-  if(eHomeTrendChart) eHomeTrendChart.setOption(miniTrendOpt);
-  
-  const catKeys = Object.keys(categories);
-  const catValues = Object.values(categories);
-  const maxVal = Math.max(...catValues, 1000);
+// --------------------------------=========
+// 📈 ECharts グラフ描画エンジン（ボタン切替 ＆ ゼロスタート完全対応版）
+// --------------------------------=========
+function updateECharts(categories, accountBalances) {
+  // --- レーダーチャート（カテゴリ比率）の描画 ---
+  const catKeys = Object.keys(categories); 
+  const catValues = Object.values(categories); 
+  const maxVal = Math.max(...catValues, 1000); 
   const radarIndicators = catKeys.map(k => ({ name: k, max: maxVal }));
   
-  const categoryOption = {
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'item', backgroundColor: 'rgba(0,0,0,0.8)', borderColor: '#00ff66', textStyle: { color: '#fff' } },
-    radar: {
-      indicator: radarIndicators.length > 0 ? radarIndicators : [{name:'データなし', max:100}],
-      shape: 'polygon', splitNumber: 4, axisName: { color: '#00ff66', fontWeight: 'bold' },
-      splitLine: { lineStyle: { color: ['rgba(0, 255, 102, 0.1)', 'rgba(0, 255, 102, 0.2)', 'rgba(0, 255, 102, 0.4)', 'rgba(0, 255, 102, 0.6)'].reverse() } },
-      splitArea: { show: false }, axisLine: { lineStyle: { color: 'rgba(0, 255, 102, 0.5)' } }
-    },
-    series: [{
-      name: 'カテゴリ内訳', type: 'radar', data: [{ value: catValues, name: '支出・収入' }],
-      symbol: 'circle', symbolSize: 6, itemStyle: { color: '#00ff66', borderColor: '#fff' },
-      lineStyle: { color: '#00ff66', width: 2, shadowColor: '#00ff66', shadowBlur: 10 },
-      areaStyle: { color: 'rgba(0, 255, 102, 0.3)' },
-      animationDuration: 1500, animationEasing: 'elasticOut'
-    }]
+  const categoryOption = { 
+    backgroundColor: 'transparent', tooltip: { trigger: 'item', backgroundColor: 'rgba(0,0,0,0.8)', borderColor: '#00ff66', textStyle: { color: '#fff' } }, 
+    radar: { indicator: radarIndicators.length > 0 ? radarIndicators : [{name:'データなし', max:100}], shape: 'polygon', splitNumber: 4, axisName: { color: '#00ff66', fontWeight: 'bold' }, splitLine: { lineStyle: { color: ['rgba(0, 255, 102, 0.1)', 'rgba(0, 255, 102, 0.2)', 'rgba(0, 255, 102, 0.4)', 'rgba(0, 255, 102, 0.6)'].reverse() } }, splitArea: { show: false }, axisLine: { lineStyle: { color: 'rgba(0, 255, 102, 0.5)' } } }, 
+    series: [{ name: 'カテゴリ内訳', type: 'radar', data: [{ value: catValues, name: '支出・収入' }], symbol: 'circle', symbolSize: 6, itemStyle: { color: '#00ff66', borderColor: '#fff' }, lineStyle: { color: '#00ff66', width: 2, shadowColor: '#00ff66', shadowBlur: 10 }, areaStyle: { color: 'rgba(0, 255, 102, 0.3)' }, animationDuration: 1500, animationEasing: 'elasticOut' }] 
   };
-  
-  if(eCategoryChart) eCategoryChart.setOption(categoryOption);
-  const miniCatOpt = JSON.parse(JSON.stringify(categoryOption));
-  miniCatOpt.radar.axisName.show = false;
+  if(eCategoryChart) eCategoryChart.setOption(categoryOption); 
+  const miniCatOpt = JSON.parse(JSON.stringify(categoryOption)); miniCatOpt.radar.axisName.show = false; 
   if(eHomeCategoryChart) eHomeCategoryChart.setOption(miniCatOpt);
+
+  // --- 📈 口座別残高推移タイムライン（完全手動化 ＆ 全画面対応版） ---
+  window.chartAccountData = accountBalances;
+  window.chartAccountsList = Object.keys(methodConfigs);
+
+  // 💥 自動切り替えのタイマーを完全に破壊（削除）！
+  if (window.chartInterval) clearInterval(window.chartInterval);
+
+  // 💡 ホーム画面と収支確認画面の両方にボタンを作る関数
+  function createButtons(containerId) {
+    const selectorDiv = document.getElementById(containerId);
+    if (!selectorDiv) return;
+    selectorDiv.innerHTML = ""; 
+    
+    if (window.chartAccountsList.length === 0) {
+      selectorDiv.innerHTML = "<span style='color:#888; font-size:12px;'>口座が登録されていません</span>";
+      return;
+    }
+    
+    window.chartAccountsList.forEach((acc, index) => {
+      const btn = document.createElement("button");
+      btn.innerText = acc;
+      btn.style.cssText = "background: #1a231f; border: 1px solid #00bfff; color: #00bfff; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; transition: 0.2s;";
+      
+      btn.onmouseover = () => { btn.style.background = "#00bfff"; btn.style.color = "#000"; };
+      btn.onmouseout = () => { 
+        if(window.currentChartIndex !== index) { btn.style.background = "#1a231f"; btn.style.color = "#00bfff"; } 
+      };
+      
+      // ボタンを押した時だけグラフが切り替わる！
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        window.currentChartIndex = index;
+        renderTrendChart(); 
+      };
+      selectorDiv.appendChild(btn);
+    });
+  }
+
+  // 両方の画面にボタンを生成
+  createButtons("bankChartSelector");       // 総合画面用
+  createButtons("trendPageBankSelector");   // 収支確認画面用
+
+  window.currentChartIndex = 0;
+
+  // 手動でグラフを描画する関数
+  function renderTrendChart() {
+    if(!window.chartAccountsList || window.chartAccountsList.length === 0) {
+      if(eHomeTrendChart) eHomeTrendChart.clear();
+      if(eTrendChart) eTrendChart.clear();
+      return;
+    }
+
+    const accountName = window.chartAccountsList[window.currentChartIndex];
+    let dataObj = window.chartAccountData[accountName] || {};
+    let dates = Object.keys(dataObj).sort();
+    let balances = dates.map(d => dataObj[d]);
+
+    if (dates.length === 0) {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      dates = [`${y}/${m}/${d}`];
+      balances = [0];
+    }
+
+    // 両方の画面のボタンの色を更新
+    ['bankChartSelector', 'trendPageBankSelector'].forEach(id => {
+      const div = document.getElementById(id);
+      if(div && div.children.length > 0) {
+        Array.from(div.children).forEach((b, i) => {
+          b.style.background = (i === window.currentChartIndex) ? "#00bfff" : "#1a231f";
+          b.style.color = (i === window.currentChartIndex) ? "#000" : "#00bfff";
+          b.style.fontWeight = (i === window.currentChartIndex) ? "bold" : "normal";
+        });
+      }
+    });
+
+    const trendOption = {
+      backgroundColor: 'transparent',
+      title: { text: `🏦 ${accountName} の残高推移`, left: 'center', textStyle: { color: '#00bfff', fontSize: 14 } },
+      tooltip: { 
+        trigger: 'axis', backgroundColor: 'rgba(0,0,0,0.8)', borderColor: '#00bfff', textStyle: { color: '#fff' },
+        formatter: function(params) {
+          return `${params[0].name}<br/>${accountName}残高: ¥${params[0].value.toLocaleString()}`;
+        }
+      },
+      grid: { left: '3%', right: '4%', bottom: '3%', top: '25%', containLabel: true },
+      xAxis: { type: 'category', data: dates, boundaryGap: true, axisLine: { lineStyle: { color: '#252838' } }, axisLabel: { color: '#aaa' } },
+      yAxis: { type: 'value', boundaryGap: ['5%', '10%'], splitLine: { lineStyle: { color: '#252838' } }, axisLabel: { color: '#aaa' } },
+      series: [{ 
+        data: balances, type: 'line', smooth: true, symbol: 'circle', symbolSize: 8, 
+        itemStyle: { color: '#00bfff', borderColor: '#fff', borderWidth: 2 }, 
+        lineStyle: { width: 4, color: '#00bfff', shadowColor: '#00bfff', shadowBlur: 15, shadowOffsetY: 5 }, 
+        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(0, 191, 255, 0.5)' }, { offset: 1, color: 'rgba(0, 191, 255, 0.0)' }]) }, 
+        animationDuration: 500, animationEasing: 'cubicOut' 
+      }] 
+    };
+    
+    const miniTrendOpt = JSON.parse(JSON.stringify(trendOption));
+    miniTrendOpt.title.show = false; 
+    miniTrendOpt.xAxis.show = false; 
+    miniTrendOpt.yAxis.show = false; 
+    miniTrendOpt.grid = { left: 0, right: 0, top: 10, bottom: 0 };
+    
+    if(eHomeTrendChart) eHomeTrendChart.setOption(miniTrendOpt, true); 
+    if(eTrendChart) eTrendChart.setOption(trendOption, true);
+    
+    const homeTitle = document.querySelector("#tab-home .clickable-card h3");
+    if (homeTitle) homeTitle.innerText = `📈 ${accountName} の残高推移`;
+  }
+
+  // 初回のみ手動描画を実行（これ以降は勝手に変わらない！）
+  renderTrendChart();
 }
+
+  // 初回起動 ＆ ループタイマー
+  cycleChart();
+  window.chartInterval = setInterval(() => {
+    window.currentChartIndex = (window.currentChartIndex + 1) % window.chartAccountsList.length;
+    cycleChart();
+  }, 8000);
+
+  
+
+  if (window.chartInterval) clearInterval(window.chartInterval);
+  window.currentChartIndex = 0;
+
+  // グラフ切り替えエンジン
+  function cycleChart(isManual = false) {
+    if(!window.chartAccountsList || window.chartAccountsList.length === 0) {
+      if(eHomeTrendChart) eHomeTrendChart.clear();
+      return;
+    }
+
+    const accountName = window.chartAccountsList[window.currentChartIndex];
+    const dataObj = window.chartAccountData[accountName];
+    const dates = Object.keys(dataObj).sort();
+    const balances = dates.map(d => dataObj[d]);
+
+    // 💡 現在表示中のボタンを光らせる
+    if(selectorDiv && selectorDiv.children.length > 0) {
+      Array.from(selectorDiv.children).forEach((b, i) => {
+        b.style.background = (i === window.currentChartIndex) ? "#00bfff" : "#1a231f";
+        b.style.color = (i === window.currentChartIndex) ? "#000" : "#00bfff";
+        b.style.fontWeight = (i === window.currentChartIndex) ? "bold" : "normal";
+      });
+    }
+
+    const trendOption = {
+      backgroundColor: 'transparent',
+      title: { text: `🏦 ${accountName} の残高推移`, left: 'center', textStyle: { color: '#00bfff', fontSize: 14 } },
+      tooltip: { 
+        trigger: 'axis', backgroundColor: 'rgba(0,0,0,0.8)', borderColor: '#00bfff', textStyle: { color: '#fff' },
+        formatter: function(params) {
+          return `${params[0].name}<br/>${accountName}残高: ¥${params[0].value.toLocaleString()}`;
+        }
+      },
+      grid: { left: '3%', right: '4%', bottom: '3%', top: '25%', containLabel: true },
+      xAxis: { type: 'category', data: dates, axisLine: { lineStyle: { color: '#252838' } }, axisLabel: { color: '#aaa' } },
+      yAxis: { type: 'value', splitLine: { lineStyle: { color: '#252838' } }, axisLabel: { color: '#aaa' } },
+      series: [{ 
+        data: balances, type: 'line', smooth: true, symbol: 'circle', symbolSize: 8, 
+        itemStyle: { color: '#00bfff', borderColor: '#fff', borderWidth: 2 }, 
+        lineStyle: { width: 4, color: '#00bfff', shadowColor: '#00bfff', shadowBlur: 15, shadowOffsetY: 5 }, 
+        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(0, 191, 255, 0.5)' }, { offset: 1, color: 'rgba(0, 191, 255, 0.0)' }]) }, 
+        animationDuration: 500, animationEasing: 'cubicOut' 
+      }] 
+    };
+    
+    // ミニグラフ用設定
+    const miniTrendOpt = JSON.parse(JSON.stringify(trendOption));
+    miniTrendOpt.title.show = false; 
+    miniTrendOpt.xAxis.show = false; 
+    miniTrendOpt.yAxis.show = false; 
+    miniTrendOpt.grid = { left: 0, right: 0, top: 10, bottom: 0 };
+    if(eHomeTrendChart) eHomeTrendChart.setOption(miniTrendOpt, true); // trueで完全上書き
+    if(eTrendChart) eTrendChart.setOption(trendOption, true);
+    
+    const homeTitle = document.querySelector("#tab-home .clickable-card h3");
+    if (homeTitle) homeTitle.innerText = `📈 ${accountName} の残高推移`;
+
+    // 💡 手動クリックされた場合は、自動タイマーをリセットして8秒後から再開させる
+    if (isManual) {
+      clearInterval(window.chartInterval);
+      window.chartInterval = setInterval(() => {
+        window.currentChartIndex = (window.currentChartIndex + 1) % window.chartAccountsList.length;
+        cycleChart();
+      }, 8000);
+    }
+  }
+
+  // 初回描画とタイマースタート
+  cycleChart();
+  window.chartInterval = setInterval(() => {
+    window.currentChartIndex = (window.currentChartIndex + 1) % window.chartAccountsList.length;
+    cycleChart();
+  }, 8000);
+
 
 function drawD3Simulation(methodAssets) {
   const container = document.getElementById('d3PaymentChart');
@@ -534,3 +744,129 @@ function drawD3Simulation(methodAssets) {
   function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
   function dragended(event, d) { if (!event.active) d3Simulation.alphaTarget(0); d.fx = null; d.fy = null; }
 }
+
+// --------------------------------=========
+// 📅 カレンダー描画エンジン
+// --------------------------------=========
+let currentCalDate = new Date(); // 現在表示しているカレンダーの年月
+
+window.changeCalendarMonth = function(offset) {
+  currentCalDate.setMonth(currentCalDate.getMonth() + offset);
+  renderCalendar();
+};
+
+function renderCalendar() {
+  const grid = document.getElementById('calendarGrid');
+  if (!grid) return; 
+
+  const year = currentCalDate.getFullYear();
+  const month = currentCalDate.getMonth();
+  
+  document.getElementById('calendarMonthYear').innerText = `${year}年 ${month + 1}月`;
+  
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
+  let html = '';
+  
+  const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  days.forEach((d, i) => {
+    const color = i === 0 ? '#ff3366' : i === 6 ? '#00bfff' : '#888'; 
+    html += `<div class="calendar-header-day" style="color: ${color};">${d}</div>`;
+  });
+  
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div class="calendar-cell" style="opacity: 0.1; border: none;"></div>`;
+  }
+  
+  const today = new Date();
+  
+  for (let d = 1; d <= daysInMonth; d++) {
+    let dayIncome = 0;
+    let dayExpense = 0;
+    
+    globalTransactionData.forEach(tx => {
+      if(!tx.date) return;
+      const txDate = tx.date.toDate();
+      if (txDate.getFullYear() === year && txDate.getMonth() === month && txDate.getDate() === d) {
+        
+        if (isStealthMode && stealthTargets.methods && stealthTargets.methods.includes(tx.paymentMethod)) return;
+        
+        if (tx.type === 'income') dayIncome += (tx.amount || 0);
+        else dayExpense += (tx.amount || 0);
+      }
+    });
+    
+    // 💡 さっき消えちゃってたのはここ！今日かどうかの判定
+    const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+    const todayClass = isToday ? 'today' : '';
+    
+    let amountHtml = '';
+    if (dayIncome > 0) amountHtml += `<div class="cal-income">+¥${dayIncome.toLocaleString()}</div>`;
+    if (dayExpense > 0) amountHtml += `<div class="cal-expense">-¥${dayExpense.toLocaleString()}</div>`;
+    
+    // 💡 ポップアップを開くクリック機能付き！
+    html += `
+      <div class="calendar-cell ${todayClass}" onclick="openDayDetailModal(${year}, ${month}, ${d})">
+        <div class="calendar-date">${d}</div>
+        <div style="flex:1;"></div>
+        ${amountHtml}
+      </div>
+    `;
+  }
+  
+  grid.innerHTML = html;
+}
+
+
+// --------------------------------=========
+// 🔓 日別明細ポップアップの制御
+// --------------------------------=========
+window.openDayDetailModal = function(year, month, day) {
+  document.getElementById('dayDetailTitle').innerText = `📅 ${year}年 ${month + 1}月 ${day}日の明細`;
+  const rowsContainer = document.getElementById('dayDetailRows');
+  rowsContainer.innerHTML = ''; // 一旦リセット
+
+  let hasData = false;
+
+  // Firebaseから取得済みの全データから、その日のデータだけを引っ張り出す
+  globalTransactionData.forEach(tx => {
+    if(!tx.date) return;
+    const txDate = tx.date.toDate();
+    if (txDate.getFullYear() === year && txDate.getMonth() === month && txDate.getDate() === day) {
+      
+      if (isStealthMode && stealthTargets.methods && stealthTargets.methods.includes(tx.paymentMethod)) return;
+      hasData = true;
+
+      const typeBadge = tx.type === 'income' ? '<span style="color:#00bfff;">[収入]</span>' : '<span style="color:#ff3366;">[支出]</span>';
+      const amtColor = tx.type === 'income' ? '#00bfff' : '#ff3366';
+      const sign = tx.type === 'income' ? '+' : '-';
+
+      rowsContainer.innerHTML += `
+        <tr style="border-bottom: 1px solid #1a1e29; font-size: 13px;">
+          <td style="padding: 10px 0;">${typeBadge}</td>
+          <td style="padding: 10px 0; color: #fff;">${tx.category || 'なし'}</td>
+          <td style="padding: 10px 0; color: #aaa;">${tx.memo || '-'}</td>
+          <td style="padding: 10px 0; text-align: right; color: ${amtColor}; font-weight: bold;">${sign}¥${tx.amount.toLocaleString()}</td>
+        </tr>
+      `;
+    }
+  });
+
+  if (!hasData) {
+    rowsContainer.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#555; padding: 20px 0; font-size:12px;">この日の取引履歴はありません。</td></tr>`;
+  }
+
+  // モーダルを表示
+  const modal = document.getElementById("dayDetailModal");
+  modal.style.display = "flex";
+  setTimeout(() => modal.classList.add("open"), 10);
+};
+
+window.closeDayDetailModal = function(e) {
+  if (e === null || e.target === document.getElementById("dayDetailModal")) {
+    const modal = document.getElementById("dayDetailModal");
+    modal.classList.remove("open");
+    setTimeout(() => modal.style.display = "none", 300);
+  }
+};

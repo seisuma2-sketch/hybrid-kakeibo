@@ -575,24 +575,29 @@ window.closeSortModal = function(e) {
 
 window.selectSortType = function(type) {
   sortConfig.type = type;
-  document.querySelectorAll("#sortModal .type-segment:first-of-type .segment-btn").forEach(btn => btn.classList.remove("active"));
+  
+  // 💡 修正：クリックしたボタンの「親グループ」の中だけリセットする！
+  const parent = document.getElementById(`sortType-${type}`).parentElement;
+  parent.querySelectorAll(".segment-btn").forEach(btn => btn.classList.remove("active"));
   document.getElementById(`sortType-${type}`).classList.add("active");
   
-  // オリジナルの時は昇順・降順を隠す
   const orderWrapper = document.getElementById("sortOrderWrapper");
   const hintText = document.getElementById("sortHintText");
   if (type === 'custom') {
-    orderWrapper.style.display = "none";
-    hintText.style.display = "block";
+    if(orderWrapper) orderWrapper.style.display = "none";
+    if(hintText) hintText.style.display = "block";
   } else {
-    orderWrapper.style.display = "block";
-    hintText.style.display = "none";
+    if(orderWrapper) orderWrapper.style.display = "block";
+    if(hintText) hintText.style.display = "none";
   }
 };
 
 window.selectSortOrder = function(order) {
   sortConfig.order = order;
-  document.querySelectorAll("#sortOrderWrapper .segment-btn").forEach(btn => btn.classList.remove("active"));
+  
+  // 💡 修正：クリックしたボタンの「親グループ」の中だけリセットする！
+  const parent = document.getElementById(`sortOrder-${order}`).parentElement;
+  parent.querySelectorAll(".segment-btn").forEach(btn => btn.classList.remove("active"));
   document.getElementById(`sortOrder-${order}`).classList.add("active");
 };
 
