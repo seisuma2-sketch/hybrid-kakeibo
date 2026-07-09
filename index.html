@@ -25,6 +25,7 @@
   <div class="app-header" id="appHeader" style="display: none;">
     <button class="menu-btn" id="menuBtn"><span></span><span></span><span></span></button>
     <div class="header-title" id="mainHeaderTitle">💸 支出・収入入力</div>
+    <button id="reloadBtn" onclick="triggerReload()" style="display:none; position:absolute; right:15px; background:none; border:none; font-size:20px; cursor:pointer; transition: 0.2s;">🔄</button>
   </div>
 
   <div class="fullscreen-menu" id="fullMenu">
@@ -205,6 +206,11 @@
       <button class="numpad-btn" onclick="inputNum('00')">00</button>
       <button class="numpad-btn" style="font-size: 14px;" onclick="addTax()">税込</button>
     </div>
+  </div>
+
+  <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--modal-overlay); backdrop-filter: blur(5px); z-index: 9999; flex-direction: column; align-items: center; justify-content: center;">
+    <div class="spinner"></div>
+    <p style="color: #00ff66; font-weight: bold; margin-top: 15px; letter-spacing: 2px;">SYNCING...</p>
   </div>
 
   <script type="module" src="app.js"></script>

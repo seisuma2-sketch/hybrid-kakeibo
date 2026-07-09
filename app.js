@@ -59,14 +59,18 @@ function setInitialDateTime() {
 window.switchPage = function(pageName) {
   document.querySelectorAll('.app-page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  const reloadBtn = document.getElementById('reloadBtn'); // リロードボタンを取得
+
   if (pageName === 'input') {
     document.getElementById('page-input').classList.add('active');
     document.getElementById('navTabInput').classList.add('active');
     document.getElementById('mainHeaderTitle').innerText = "💸 支出・収入入力";
+    if(reloadBtn) reloadBtn.style.display = 'none'; // 入力画面では隠す
   } else {
     document.getElementById('page-balance').classList.add('active');
     document.getElementById('navTabBalance').classList.add('active');
     document.getElementById('mainHeaderTitle').innerText = "🏦 残高・口座一覧";
+    if(reloadBtn) reloadBtn.style.display = 'block'; // 残高画面で表示する！
   }
 };
 
@@ -469,9 +473,21 @@ function animateAmountHacking(targetAmount) {
   let ticks = 0; switchType('expense');
   const interval = setInterval(() => { currentVal = Math.floor(Math.random() * 99999).toString(); updateDisplay(); ticks++; if (ticks > 15) { clearInterval(interval); currentVal = targetAmount.toString(); updateDisplay(); } }, 50);
 }
-// --------------------------------=========
-// 🔄 下にスワイプで強制リロード (Pull-to-Refresh)
-// --------------------------------=========
+window.triggerReload = function() {
+  // ロード画面（くるくる）を表示
+  const overlay = document.getElementById('loadingOverlay');
+  if(overlay) overlay.style.display = 'flex';
+  
+  // スマホが対応していればブルッと震えさせる
+  if (navigator.vibrate) navigator.vibrate(50);
+  
+  // ロード画面を0.5秒見せてから本当にページを更新する
+  setTimeout(() => {
+    window.location.reload();
+  }, 500);
+};
+
+// 下にスワイプで強制リロード (Pull-to-Refresh)
 let touchStartY = 0;
 document.addEventListener('touchstart', e => { 
   touchStartY = e.touches[0].clientY; 
@@ -479,10 +495,8 @@ document.addEventListener('touchstart', e => {
 
 document.addEventListener('touchend', e => {
   const touchEndY = e.changedTouches[0].clientY;
-  // 画面の一番上にいる状態で、下に150px以上スワイプされたらリロード
+  // 画面のトップにいて、下に150px以上引っ張られたらリロード発動
   if (window.scrollY === 0 && (touchEndY - touchStartY > 150)) {
-    // 少しバイブレーションさせてリロード（対応スマホのみ）
-    if (navigator.vibrate) navigator.vibrate(50);
-    window.location.reload();
+    window.triggerReload();
   }
 }, {passive: true});
