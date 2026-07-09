@@ -521,7 +521,6 @@ document.getElementById('receiptInput').addEventListener('change', async functio
   reader.onload = async function(event) {
     const base64String = event.target.result; scannerImage.style.backgroundImage = `url(${base64String})`;
     try {
-      if (GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") throw new Error("APIキーが設定されていません。");
       const pureBase64 = base64String.split(',')[1];
       const response = await fetch('/api/gemini', {
         method: 'POST',

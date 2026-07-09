@@ -171,7 +171,7 @@ window.saveStealthConfig = async function() {
   
   document.getElementById('stealthConfigModal').style.display = 'none';
   renderDashboard();
-  alert("設定を保存しました。");
+  await showCustomAlert("設定を保存しました！");
 };
 
 window.closeStealthConfig = function() {
@@ -354,10 +354,48 @@ function renderDashboard() {
     if(config.type === "asset" || config.type === "asset-debit") grandTotalAsset += methodAssets[k];
   });
 
+  
+document.getElementById("homeTotalAsset").innerText = `¥${grandTotalAsset.toLocaleString()}`;
   document.getElementById("totalAsset").innerText = `¥${grandTotalAsset.toLocaleString()}`;
   document.getElementById("totalIncome").innerText = `¥${totalIncomeSum.toLocaleString()}`;
   document.getElementById("totalExpense").innerText = `¥${totalExpenseSum.toLocaleString()}`;
   document.getElementById("transactionRowsHome").innerHTML = tableHtml;
+
+  // 💡 直感化ロジック：今月の収支の着地（黒字か赤字か）を判定して色を変える
+  const homePLStatus = document.getElementById("homePLStatus");
+  const homePLSubText = document.getElementById("homePLSubText");
+  const currentMonthNet = totalIncomeSum - totalExpenseSum; // 今月の純収支
+
+  if (currentMonthNet >= 0) {
+    homePLStatus.innerText = `+¥${currentMonthNet.toLocaleString()}`;
+    homePLStatus.className = "value neon-green";
+    homePLSubText.innerText = "👍 今月は黒字安全圏をキープ中！";
+    homePLSubText.style.color = "#00ff66";
+  } else {
+    homePLStatus.innerText = `-¥${Math.abs(currentMonthNet).toLocaleString()}`;
+    homePLStatus.className = "value neon-red";
+    homePLSubText.innerText = "⚠️ 防衛ライン突破（赤字）。支出を警戒せよ";
+    homePLSubText.style.color = "#ff3366";
+  }
+
+  // 💡 直感化ロジック：仮の月間予算（例: 10万円）に対する使用率を計算してバーを伸ばす
+  const MONTHLY_BUDGET = 100000; // 星翔の基準に合わせて自由に変えてね！
+  const budgetPercent = Math.min(Math.floor((totalExpenseSum / MONTHLY_BUDGET) * 100), 100);
+  
+  document.getElementById("homeBudgetPercent").innerText = `${budgetPercent}%`;
+  const budgetBar = document.getElementById("homeBudgetBar");
+  budgetBar.style.width = `${budgetPercent}%`;
+  
+  // 予算オーバーしそうならバーの色をサイバーレッドに変える
+  if (budgetPercent >= 80) {
+    budgetBar.style.background = "#ff3366";
+    budgetBar.style.boxShadow = "0 0 10px #ff3366";
+    document.getElementById("homeBudgetPercent").className = "value neon-red";
+  } else {
+    budgetBar.style.background = "#00bfff";
+    budgetBar.style.boxShadow = "0 0 10px #00bfff";
+    document.getElementById("homeBudgetPercent").className = "value neon-blue";
+  }
 
   let assetHtml = ""; let bsAssetHtml = ""; let bsLiabilityHtml = ""; let assetTotalSum = 0; let liabilityTotalSum = 0;
 
