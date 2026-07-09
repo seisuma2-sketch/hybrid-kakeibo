@@ -19,6 +19,8 @@
     }
   </script>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 </head>
 <body class="theme-cyber">
 
@@ -36,6 +38,7 @@
           <div class="theme-circle t-cyber" onclick="changeTheme('theme-cyber')"></div>
         </div>
       </div>
+      <button class="menu-item" onclick="openSortModal()" style="color: #00bfff;">🔄 並び替え設定</button>
       <button class="menu-item" id="logoutLink" style="color: #ff3366;">ログアウト</button>
     </div>
   </div>
@@ -211,6 +214,37 @@
   <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--modal-overlay); backdrop-filter: blur(5px); z-index: 9999; flex-direction: column; align-items: center; justify-content: center;">
     <div class="spinner"></div>
     <p style="color: #00ff66; font-weight: bold; margin-top: 15px; letter-spacing: 2px;">SYNCING...</p>
+  </div>
+
+  <div id="sortModal" class="custom-modal-overlay" onclick="closeSortModal(event)">
+    <div class="custom-modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header-title">
+        <span>🔄 SORT SETTINGS</span>
+        <span style="cursor:pointer; font-size:20px; color:var(--text-sub);" onclick="closeSortModal(null)">✕</span>
+      </div>
+      
+      <label>並び替えの基準</label>
+      <div class="type-segment" style="margin-bottom: 15px;">
+        <div class="segment-btn active" id="sortType-custom" onclick="selectSortType('custom')">オリジナル</div>
+        <div class="segment-btn" id="sortType-name" onclick="selectSortType('name')">五十音順</div>
+        <div class="segment-btn" id="sortType-balance" onclick="selectSortType('balance')">残高順</div>
+        <div class="segment-btn" id="sortType-freq" onclick="selectSortType('freq')">よく使う順</div>
+      </div>
+
+      <div id="sortOrderWrapper" style="display: none;">
+        <label>昇順 / 降順</label>
+        <div class="type-segment" style="margin-bottom: 15px;">
+          <div class="segment-btn active" id="sortOrder-desc" onclick="selectSortOrder('desc')">大きい順 (降順)</div>
+          <div class="segment-btn" id="sortOrder-asc" onclick="selectSortOrder('asc')">小さい順 (昇順)</div>
+        </div>
+      </div>
+      
+      <p id="sortHintText" style="font-size: 12px; color: #00ff66; text-align: center; margin-top: 10px;">
+        ※「オリジナル」選択時のみ、リストを長押しして自由にドラッグ移動できます。
+      </p>
+
+      <button type="button" class="btn-primary" style="margin-top:15px;" onclick="applySortSettings()">適用する (APPLY)</button>
+    </div>
   </div>
 
   <script type="module" src="app.js"></script>

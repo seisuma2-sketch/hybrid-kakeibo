@@ -42,6 +42,8 @@ let maskedBanks = {};
 let cachedGrandTotal = 0;
 let cachedBalances = {};
 let modalSelectedType = "asset";
+let sortConfig = { type: 'custom', order: 'desc' };
+let methodFreq = {}; // 各口座の使用回数をカウントするハコ
 
 // --------------------------------=========
 // 💡 UI・ページ制御ロジック
@@ -181,11 +183,38 @@ function renderBalancesUI() {
   document.getElementById("allAssetTotal").innerText = isTotalAssetMasked ? "¥ *****" : "¥ " + cachedGrandTotal.toLocaleString();
   const container = document.getElementById("bankListContainer");
   container.innerHTML = "";
-  Object.keys(cachedBalances).forEach(name => {
-    if (!currentMethods.includes(name)) return;
+  
+  // 💡 ソート処理ロジック
+  let sortedMethods = [...currentMethods];
+  
+  if (sortConfig.type !== 'custom') {
+    sortedMethods.sort((a, b) => {
+      let valA, valB;
+      if (sortConfig.type === 'name') {
+        valA = a; valB = b;
+      } else if (sortConfig.type === 'balance') {
+        valA = cachedBalances[a] || 0; valB = cachedBalances[b] || 0;
+      } else if (sortConfig.type === 'freq') {
+        valA = methodFreq[a] || 0; valB = methodFreq[b] || 0;
+      }
+      
+      let result = 0;
+      if (sortConfig.type === 'name') {
+        result = valA.localeCompare(valB, 'ja'); // 日本語の五十音順比較
+      } else {
+        result = valA - valB; // 数値の比較
+      }
+      return sortConfig.order === 'asc' ? result : -result;
+    });
+  }
+
+  // ソートされた順番で画面に描画
+  sortedMethods.forEach(name => {
+    if (!currentMethods.includes(name)) return; 
     if ((stealthTargets.methods || []).includes(name)) return;
+    
     const config = methodConfigs[name] || {type:"asset"};
-    const bal = cachedBalances[name];
+    const bal = cachedBalances[name] || 0;
     const signClass = bal >= 0 ? "plus" : "minus";
     
     let badge = ""; 
@@ -196,8 +225,48 @@ function renderBalancesUI() {
     const isBankHidden = maskedBanks[name] || false;
     const displayBalance = isBankHidden ? "¥ ****" : "¥ " + bal.toLocaleString();
     const eyeIcon = isBankHidden ? "✖️" : "👁️";
-    container.innerHTML += `<div class="bank-item"><span class="bank-name">${name} ${badge}</span><div class="bank-right"><span class="bank-balance ${signClass}">${displayBalance}</span><button type="button" class="btn-stealth-eye" onclick="toggleBankMask('${name}')">${eyeIcon}</button><button type="button" class="btn-delete-method" onclick="deleteMethod('${name}')">🗑️</button></div></div>`;
+    const dragClass = sortConfig.type === 'custom' ? 'draggable-mode' : '';
+    
+    // 💡 data-name 属性を持たせておき、ドラッグ終了時に順番を取得できるようにする
+    container.innerHTML += `
+      <div class="bank-item ${dragClass}" data-name="${name}">
+        <span class="bank-name">${name} ${badge}</span>
+        <div class="bank-right">
+          <span class="bank-balance ${signClass}">${displayBalance}</span>
+          <button type="button" class="btn-stealth-eye" onclick="toggleBankMask('${name}')">${eyeIcon}</button>
+          <button type="button" class="btn-delete-method" onclick="deleteMethod('${name}')">🗑️</button>
+        </div>
+      </div>
+    `;
   });
+  
+  // 💡 描画が終わったらドラッグ＆ドロップを有効化
+  initSortable();
+}
+
+// 💡 ドラッグ＆ドロップの初期化エンジン
+function initSortable() {
+  const container = document.getElementById("bankListContainer");
+  if (window.sortableInstance) window.sortableInstance.destroy();
+  
+  // オリジナルソートの時だけドラッグを許可する
+  if (sortConfig.type === 'custom') {
+    window.sortableInstance = new Sortable(container, {
+      animation: 200,
+      delay: 300, // 💡 0.3秒長押ししたらドラッグ開始（スマホの誤爆スクロール防止）
+      delayOnTouchOnly: true,
+      ghostClass: 'sortable-ghost',
+      dragClass: 'sortable-drag',
+      onEnd: async function () {
+        // ドラッグが終わったらHTMLの並び順を取得してFirebaseに上書き保存
+        const newOrder = Array.from(container.children).map(el => el.getAttribute('data-name'));
+        currentMethods = newOrder;
+        if (auth.currentUser) {
+          await setDoc(doc(db, "user_settings", auth.currentUser.uid), { paymentMethods: currentMethods }, { merge: true });
+        }
+      }
+    });
+  }
 }
 
 function startRealtimeBalanceSync(uid) {
@@ -205,18 +274,30 @@ function startRealtimeBalanceSync(uid) {
   unsubscribeTransactions = onSnapshot(q, (snapshot) => {
     cachedBalances = {};
     cachedGrandTotal = 0;
-    currentMethods.forEach(m => cachedBalances[m] = 0);
+    methodFreq = {}; // 💡 毎回リセットして再カウント
+    
+    currentMethods.forEach(m => {
+      cachedBalances[m] = 0;
+      methodFreq[m] = 0; // 💡 初期値0をセット
+    });
+    
     snapshot.forEach(doc => {
       const data = doc.data();
       const amount = data.amount || 0;
       const type = data.type || "expense";
       const method = data.paymentMethod;
       const category = data.category;
+      
       if ((stealthTargets.methods || []).includes(method) || (stealthTargets.categories || []).includes(category)) return;
       
       const config = methodConfigs[method] || { type: "asset" };
       let targetMethod = method;
+      
       if (!cachedBalances[targetMethod]) cachedBalances[targetMethod] = 0;
+      if (!methodFreq[targetMethod]) methodFreq[targetMethod] = 0;
+      
+      // 💡 取引があるたびに使用回数を+1する
+      methodFreq[targetMethod] += 1;
       
       if (type === "income") {
         cachedBalances[targetMethod] += amount;
@@ -400,6 +481,7 @@ onAuthStateChanged(auth, async (user) => {
       if (data.expenseCategories) expenseCategories = data.expenseCategories;
       if (data.incomeCategories) incomeCategories = data.incomeCategories;
       if (data.stealthTargets) stealthTargets = data.stealthTargets;
+      if (data.sortConfig) sortConfig = data.sortConfig;
     } else {
       await setDoc(userRef, { paymentMethods: currentMethods, methodConfigs: methodConfigs, expenseCategories: expenseCategories, incomeCategories: incomeCategories }, { merge: true });
     }
@@ -473,30 +555,54 @@ function animateAmountHacking(targetAmount) {
   let ticks = 0; switchType('expense');
   const interval = setInterval(() => { currentVal = Math.floor(Math.random() * 99999).toString(); updateDisplay(); ticks++; if (ticks > 15) { clearInterval(interval); currentVal = targetAmount.toString(); updateDisplay(); } }, 50);
 }
-window.triggerReload = function() {
-  // ロード画面（くるくる）を表示
-  const overlay = document.getElementById('loadingOverlay');
-  if(overlay) overlay.style.display = 'flex';
+window.openSortModal = function() {
+  toggleMenu(); // メニューを閉じる
+  const modal = document.getElementById("sortModal");
+  modal.style.display = "flex"; 
+  setTimeout(() => modal.classList.add("open"), 10);
   
-  // スマホが対応していればブルッと震えさせる
-  if (navigator.vibrate) navigator.vibrate(50);
-  
-  // ロード画面を0.5秒見せてから本当にページを更新する
-  setTimeout(() => {
-    window.location.reload();
-  }, 500);
+  // 現在の設定に合わせてボタンを光らせる
+  selectSortType(sortConfig.type);
+  selectSortOrder(sortConfig.order);
 };
 
-// 下にスワイプで強制リロード (Pull-to-Refresh)
-let touchStartY = 0;
-document.addEventListener('touchstart', e => { 
-  touchStartY = e.touches[0].clientY; 
-}, {passive: true});
+window.closeSortModal = function(e) { 
+  if (e === null || e.target === document.getElementById("sortModal")) { 
+    const modal = document.getElementById("sortModal"); 
+    modal.classList.remove("open"); 
+    setTimeout(() => modal.style.display = "none", 300); 
+  } 
+};
 
-document.addEventListener('touchend', e => {
-  const touchEndY = e.changedTouches[0].clientY;
-  // 画面のトップにいて、下に150px以上引っ張られたらリロード発動
-  if (window.scrollY === 0 && (touchEndY - touchStartY > 150)) {
-    window.triggerReload();
+window.selectSortType = function(type) {
+  sortConfig.type = type;
+  document.querySelectorAll("#sortModal .type-segment:first-of-type .segment-btn").forEach(btn => btn.classList.remove("active"));
+  document.getElementById(`sortType-${type}`).classList.add("active");
+  
+  // オリジナルの時は昇順・降順を隠す
+  const orderWrapper = document.getElementById("sortOrderWrapper");
+  const hintText = document.getElementById("sortHintText");
+  if (type === 'custom') {
+    orderWrapper.style.display = "none";
+    hintText.style.display = "block";
+  } else {
+    orderWrapper.style.display = "block";
+    hintText.style.display = "none";
   }
-}, {passive: true});
+};
+
+window.selectSortOrder = function(order) {
+  sortConfig.order = order;
+  document.querySelectorAll("#sortOrderWrapper .segment-btn").forEach(btn => btn.classList.remove("active"));
+  document.getElementById(`sortOrder-${order}`).classList.add("active");
+};
+
+window.applySortSettings = async function() {
+  // 設定をFirebaseに保存して反映
+  if (auth.currentUser) {
+    await setDoc(doc(db, "user_settings", auth.currentUser.uid), { sortConfig: sortConfig }, { merge: true });
+  }
+  renderBalancesUI();
+  closeSortModal(null);
+  showCustomAlert("並び替え設定を適用しました！");
+};
