@@ -58,6 +58,7 @@
       <div class="type-switcher">
         <div class="switch-btn active expense" id="btnExpense" onclick="switchType('expense')">支出</div>
         <div class="switch-btn income" id="btnIncome" onclick="switchType('income')">収入</div>
+        <div class="switch-btn transfer" id="btnTransfer" onclick="switchType('transfer')" style="background-color: #252838; color: #00bfff;">振替</div>
       </div>
 
       <label id="labelDate">発生日時</label>
@@ -71,16 +72,29 @@
         <button type="button" class="btn-stealth-eye" id="btnHideAmount" onclick="toggleInputMask()">👁️</button>
       </div>
       
-      <label>カテゴリ（用途/収入源）</label>
-      <div class="flex-row">
-        <select id="category" style="flex: 1; margin-top: 5px;"></select>
-        <button type="button" class="btn-success" onclick="openAddCategoryModal()">＋ 追加</button>
+      <div id="normalFields">
+        <label>カテゴリ（用途/収入源）</label>
+        <div class="flex-row">
+          <select id="category" style="flex: 1; margin-top: 5px;"></select>
+          <button type="button" class="btn-success" onclick="openAddCategoryModal()">＋ 追加</button>
+        </div>
+        
+        <label id="labelMethod" style="margin-top: 15px; display: block;">支払い・受取先口座</label>
+        <div class="flex-row">
+          <select id="paymentMethod" style="flex: 1; margin-top: 5px;"></select>
+          <button type="button" class="btn-success" onclick="openAddMethodModal()">＋ 追加</button>
+        </div>
       </div>
-      
-      <label id="labelMethod">支払い・受取先口座</label>
-      <div class="flex-row">
-        <select id="paymentMethod" style="flex: 1; margin-top: 5px;"></select>
-        <button type="button" class="btn-success" onclick="openAddMethodModal()">＋ 追加</button>
+      <div id="transferFields" style="display: none; margin-top: 15px;">
+        <label style="color: #ff3366; font-size: 13px;">❌ 出金元（減る口座）</label>
+        <div class="flex-row" style="margin-bottom: 15px;">
+          <select id="txFromAccount" style="flex: 1; background: #11141a; border: 1px solid #252838; color: #fff; padding: 8px; border-radius: 4px; margin-top: 5px;"></select>
+        </div>
+        
+        <label style="color: #00bfff; font-size: 13px;">⭕ 入金先（増える口座）</label>
+        <div class="flex-row">
+          <select id="txToAccount" style="flex: 1; background: #11141a; border: 1px solid #252838; color: #fff; padding: 8px; border-radius: 4px; margin-top: 5px;"></select>
+        </div>
       </div>
       <p id="methodHintText" style="font-size: 11px; color: #00ff66; margin-top: 5px; margin-bottom: 0;"></p>
       

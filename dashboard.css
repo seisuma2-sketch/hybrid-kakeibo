@@ -638,3 +638,25 @@ tr:hover td {
   padding-bottom: 15px;
   letter-spacing: 1px;
 }
+
+/* 📅 カレンダーのサイバーナビゲーションボタン */
+.cyber-nav-btn {
+  background: #11141a;
+  color: #00ff66;
+  border: 1px solid #00ff66;
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
+}
+
+/* マウスを乗せたときにサイバー発光するギミック */
+.cyber-nav-btn:hover {
+  background: rgba(0, 255, 102, 0.1);
+  box-shadow: 0 0 15px rgba(0, 255, 102, 0.5);
+  text-shadow: 0 0 8px #00ff66;
+}

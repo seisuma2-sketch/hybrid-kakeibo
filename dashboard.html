@@ -172,10 +172,10 @@
         <div class="card" style="min-height: 600px; display: flex; flex-direction: column;">
           
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <button class="btn-primary" onclick="changeCalendarMonth(-1)" style="padding: 5px 15px;">◀ 先月</button>
-            <h2 id="calendarMonthYear" style="color: #00ff66; margin: 0; font-size: 24px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,255,102,0.5);">2026年 7月</h2>
-            <button class="btn-primary" onclick="changeCalendarMonth(1)" style="padding: 5px 15px;">来月 ▶</button>
-          </div>
+  <button class="cyber-nav-btn" onclick="changeCalendarMonth(-1)">◀ 先月</button>
+  <h2 id="calendarMonthYear" style="color: #00ff66; text-shadow: 0 0 10px rgba(0,255,102,0.5); margin: 0; font-size: 24px;"></h2>
+  <button class="cyber-nav-btn" onclick="changeCalendarMonth(1)">来月 ▶</button>
+</div>
           
           <div id="calendarGrid" class="calendar-grid">
             </div>
@@ -203,11 +203,20 @@
             <div id="trendPageBankSelector" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
           </div>
           
+
           <div id="trendChart" style="flex: 1; width: 100%; min-height: 400px;"></div>
+          
+          <div id="trendBalancesGrid" style="display: flex; gap: 10px; overflow-x: auto; padding: 15px 0; margin-top: 10px; border-top: 1px solid #252838;"></div>
         </div>
       </div>      <div id="tab-category" class="tab-pane"><div class="card"><h2 class="chart-box-title">■ カテゴリの属性バランス (ECharts レーダー)</h2><div id="categoryChart" class="chart-container"></div></div></div>
-      <div id="tab-payment" class="tab-pane"><div class="card"><h2 class="chart-box-title">■ 資産の重力場 (D3.js フォースバブル)</h2><p style="font-size:12px; color:#aaa; margin-top:-15px;">口座の残高が光の粒子として浮遊します。ドラッグで引っ張って遊べます。</p><div id="d3PaymentChart" class="chart-container" style="background: #0a0b0e; border-radius: 8px; border: 1px solid #1f2230; overflow: hidden;"></div></div></div>
-
+<div id="tab-payment" class="tab-pane">
+        <div class="card" style="min-height: 500px; display: flex; flex-direction: column;">
+          <h2 style="color: #00ff66; margin: 0 0 5px 0; font-size: 18px;">■ 資産の重力場 (D3.js フォースバブル)</h2>
+          <p style="font-size:12px; color:#aaa; margin-bottom: 20px;">口座の残高が光の粒子として浮遊します。ドラッグで引っ張って遊べます。</p>
+          
+          <div id="paymentChart" style="flex: 1; width: 100%; min-height: 400px; background: #0a0c10; border-radius: 8px; border: 1px solid #252838; overflow: hidden; position: relative;"></div>
+        </div>
+      </div>
       <div id="tab-bspl" class="tab-pane">
         <div class="card">
           <h2 class="chart-box-title" style="color:#c933ff;">■ 財務決算システム (貸借対照表 - Balance Sheet)</h2>

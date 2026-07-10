@@ -77,25 +77,76 @@ window.switchPage = function(pageName) {
 };
 
 window.switchType = function(type) {
-  currentDataType = type;
+  currentDataType = type; // 💡 星翔の変数名をそのまま使うよ！
+  
   const btnExpense = document.getElementById("btnExpense");
   const btnIncome = document.getElementById("btnIncome");
+  const btnTransfer = document.getElementById("btnTransfer"); // 💡 新設の振替ボタン
   const catSelect = document.getElementById("category");
-  catSelect.innerHTML = "";
+  
+  const normalFields = document.getElementById("normalFields");
+  const transferFields = document.getElementById("transferFields");
+
+  // 一旦すべてのボタンの光を消す
+  btnExpense.classList.remove("active");
+  btnIncome.classList.remove("active");
+  if (btnTransfer) btnTransfer.classList.remove("active");
+  
+  if (catSelect) catSelect.innerHTML = "";
+
   if (type === "expense") {
+    // 🚨 支出の処理
     btnExpense.classList.add("active");
-    btnIncome.classList.remove("active");
     document.getElementById("labelAmount").innerText = "金額";
     document.getElementById("labelMethod").innerText = "支払い方法";
-    expenseCategories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
-  } else {
+    if (typeof expenseCategories !== 'undefined') {
+      expenseCategories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
+    }
+    // フォームの表示切替
+    if(normalFields) normalFields.style.display = "block";
+    if(transferFields) transferFields.style.display = "none";
+    
+  } else if (type === "income") {
+    // 💰 収入の処理
     btnIncome.classList.add("active");
-    btnExpense.classList.remove("active");
     document.getElementById("labelAmount").innerText = "収入金額";
     document.getElementById("labelMethod").innerText = "受取先・口座";
-    incomeCategories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
+    if (typeof incomeCategories !== 'undefined') {
+      incomeCategories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
+    }
+    // フォームの表示切替
+    if(normalFields) normalFields.style.display = "block";
+    if(transferFields) transferFields.style.display = "none";
+    
+  } else if (type === "transfer") {
+    // 🔄 振替の処理
+    if (btnTransfer) btnTransfer.classList.add("active");
+    document.getElementById("labelAmount").innerText = "振替金額";
+    
+    // フォームの表示切替（ここでカテゴリと支払い方法を隠す！）
+    if(normalFields) normalFields.style.display = "none";
+    if(transferFields) transferFields.style.display = "block";
+    
+    // 振替用のセレクトボックスに口座リストを詰める関数を呼ぶ
+    if (typeof window.populateTransferAccounts === "function") {
+      window.populateTransferAccounts();
+    }
   }
 };
+
+// 💡 振替用のセレクトボックスに口座リストを詰める関数（もしさっき追加してなかったら、このまま下にくっつけておいて！）
+window.populateTransferAccounts = function() {
+  const fromSelect = document.getElementById('txFromAccount');
+  const toSelect = document.getElementById('txToAccount');
+  if (!fromSelect || !toSelect) return;
+
+  const paymentSelect = document.getElementById('paymentMethod');
+  if (paymentSelect) {
+    fromSelect.innerHTML = paymentSelect.innerHTML;
+    toSelect.innerHTML = paymentSelect.innerHTML;
+  }
+};
+
 
 // --------------------------------=========
 // 🧮 カスタム電卓ロジック
@@ -302,9 +353,24 @@ function startRealtimeBalanceSync(uid) {
       if (type === "income") {
         cachedBalances[targetMethod] += amount;
         if(config.type !== "credit") cachedGrandTotal += amount;
-      } else {
+      } else if (type === "expense") {
         cachedBalances[targetMethod] -= amount;
         if(config.type !== "credit") cachedGrandTotal -= amount;
+      } else if (type === "transfer") {
+        // 🔄 振替のリアルタイム計算（減る口座と増える口座を同時に処理！）
+        const fromAcc = data.fromAccount;
+        const toAcc = data.toAccount;
+        
+        if (fromAcc && cachedBalances[fromAcc] !== undefined) {
+          cachedBalances[fromAcc] -= amount;
+          const fromConf = methodConfigs[fromAcc] || { type: "asset" };
+          if (fromConf.type !== "credit") cachedGrandTotal -= amount; // 出金元から引く
+        }
+        if (toAcc && cachedBalances[toAcc] !== undefined) {
+          cachedBalances[toAcc] += amount;
+          const toConf = methodConfigs[toAcc] || { type: "asset" };
+          if (toConf.type !== "credit") cachedGrandTotal += amount; // 入金先に足す
+        }
       }
     });
     renderBalancesUI();
@@ -497,16 +563,61 @@ document.getElementById("authToggle").addEventListener("click", (e) => { isSignU
 document.getElementById("logoutLink").addEventListener("click", () => { toggleMenu(); signOut(auth); });
 
 // 記録ボタンの押下
+// 記録ボタンの押下
 document.getElementById("submitBtn").addEventListener("click", async () => {
-  if (operation !== null) compute(); const amount = Number(currentVal); const category = document.getElementById("category").value; const paymentMethod = document.getElementById("paymentMethod").value; const memo = document.getElementById("memo").value; const dateString = document.getElementById("transactionDate").value;
+  if (operation !== null) compute(); 
+  const amount = Number(currentVal); 
+  const dateString = document.getElementById("transactionDate").value;
+  
   if (!amount || amount === 0) { await showCustomAlert("金額を入力してね！"); return; }
   if (!dateString) { await showCustomAlert("日時がセットされていません。"); return; }
   const selectedDate = new Date(dateString);
+
+  // 💡 Firebaseに送るデータの箱を作る
+  let txData = { 
+    amount: amount, 
+    date: selectedDate, 
+    userId: auth.currentUser.uid 
+  };
+
+  // 💥 魔法の分岐処理！
+  if (currentDataType === "transfer") {
+    // 🔄 振替モードのとき
+    txData.type = "transfer";
+    txData.fromAccount = document.getElementById("txFromAccount").value;
+    txData.toAccount = document.getElementById("txToAccount").value;
+    txData.category = "資金移動"; // カテゴリを固定
+    txData.paymentMethod = txData.fromAccount; // エラー回避のためのダミー出金元
+    
+    // メモが空欄なら自動生成！
+    const memoValue = document.getElementById("memo").value; 
+    txData.memo = memoValue ? memoValue : `${txData.fromAccount} ➔ ${txData.toAccount}`;
+    
+  } else {
+    // 💰 普段の支出・収入モードのとき
+    txData.type = currentDataType; 
+    txData.paymentMethod = document.getElementById("paymentMethod").value;
+    txData.category = document.getElementById("category").value;
+    txData.memo = document.getElementById("memo").value;
+  }
+
   try {
-    await addDoc(collection(db, "transactions"), { amount: amount, category: category, type: currentDataType, paymentMethod: paymentMethod, memo: memo, date: selectedDate, userId: auth.currentUser.uid });
-    amountHistory.unshift(amount); if (amountHistory.length > 5) amountHistory.pop(); localStorage.setItem('kakeibo-history', JSON.stringify(amountHistory)); renderHistory();
-    document.getElementById("message").style.display = "block"; clearNum(); document.getElementById("memo").value = ""; setInitialDateTime(); setTimeout(() => { document.getElementById("message").style.display = "none"; }, 3000);
-  } catch (error) { await showCustomAlert("保存に失敗しました。"); }
+    // 💡 構築した txData をそのまま送信！
+    await addDoc(collection(db, "transactions"), txData);
+    
+    amountHistory.unshift(amount); 
+    if (amountHistory.length > 5) amountHistory.pop(); 
+    localStorage.setItem('kakeibo-history', JSON.stringify(amountHistory)); 
+    renderHistory();
+    
+    document.getElementById("message").style.display = "block"; 
+    clearNum(); 
+    document.getElementById("memo").value = ""; 
+    setInitialDateTime(); 
+    setTimeout(() => { document.getElementById("message").style.display = "none"; }, 3000);
+  } catch (error) { 
+    await showCustomAlert("保存に失敗しました: " + error.message); 
+  }
 });
 
 // --------------------------------=========

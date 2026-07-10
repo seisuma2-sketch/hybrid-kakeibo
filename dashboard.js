@@ -55,22 +55,33 @@ function toHalfWidth(str) {
 // 💡 UI・タブ・モーダル制御
 // --------------------------------=========
 window.switchTab = function(tabId) {
+  // すべてのタブとメニューのハイライトを消す
   document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
+  // IDの名前を綺麗にする
   const baseName = tabId.replace('tab-', '').replace('nav-', '');
+  
+  // 対象の箱を探す
   const targetTab = document.getElementById('tab-' + baseName);
   const targetNav = document.getElementById('nav-' + baseName);
 
   if (targetTab) {
     targetTab.classList.add('active');
     
-    // 💡 魔法のコード：タブが開いた直後にグラフを「全画面サイズ」に再計算（リサイズ）させる！
+    // タブが開いた直後にグラフサイズを再計算
     setTimeout(() => {
       if (typeof eTrendChart !== 'undefined' && eTrendChart) eTrendChart.resize();
       if (typeof eHomeTrendChart !== 'undefined' && eHomeTrendChart) eHomeTrendChart.resize();
       if (typeof eCategoryChart !== 'undefined' && eCategoryChart) eCategoryChart.resize();
       if (typeof eHomeCategoryChart !== 'undefined' && eHomeCategoryChart) eHomeCategoryChart.resize();
+      
+      // 💡 超重要：もし開いたタブが「残高遊び場(payment)」だったら、バブルを描画する！
+      if (baseName === 'payment') {
+        if (typeof drawD3Simulation === 'function') {
+          drawD3Simulation();
+        }
+      }
     }, 50);
 
   } else {
@@ -313,67 +324,82 @@ function renderDashboard() {
   const categoriesData = {}; const dailyData = {}; const methodAssets = {}; 
   let tableHtml = "";
 
+  // 1️⃣ BS/PL、テーブル、総資産の計算（新しい順で処理）
   globalTransactionData.forEach((data) => {
     const type = data.type || "expense";
-    const method = data.paymentMethod || "未設定";
-    const category = data.category || "その他";
-    const isTarget = (stealthTargets.methods || []).includes(method) || (stealthTargets.categories || []).includes(category);
-    if (isStealthMode && isTarget) return; 
-
     const amount = data.amount || 0;
-    const config = methodConfigs[method] || { type: "asset" };
-    let targetAccount = method;
-    
-    if (category === "初期残高設定") {
-      totalCapital += amount;
-      methodAssets[targetAccount] = (methodAssets[targetAccount] || 0) + amount;
-    } else {
-      if (type === "income") {
-        totalIncomeSum += amount;
-        if(config.type !== "credit") totalPLProfit += amount;
-        methodAssets[targetAccount] = (methodAssets[targetAccount] || 0) + amount;
-      } else {
-        totalExpenseSum += amount;
-        if(config.type !== "credit") totalPLProfit -= amount;
-        methodAssets[targetAccount] = (methodAssets[targetAccount] || 0) - amount;
-      }
-    }
-    
-    categoriesData[category] = (categoriesData[category] || 0) + amount;
     
     const dateObj = data.date ? data.date.toDate() : new Date(); 
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');
-    const dayKey = `${year}/${month}/${day}`;
-    
-    dailyData[dayKey] = (dailyData[dayKey] || 0) + (type === "income" ? amount : -amount);
-    
+    const dayKey = `${year}/${month}/${day}`; 
     const hours = String(dateObj.getHours()).padStart(2, '0');
     const minutes = String(dateObj.getMinutes()).padStart(2, '0');
     const dateString = `${year}/${month}/${day} ${hours}:${minutes}`;
-    
-    const typeBadge = type === "income" ? `<span style="color:#00ff66;">[収入]</span>` : `<span style="color:#ff3366;">[支出]</span>`;
-    tableHtml += `<tr><td>${dateString}</td><td>${typeBadge}</td><td>${category}</td><td><span style="color:#00bfff;">${method}</span></td><td>${data.memo || '-'}</td><td style="text-align: right; ${type === "income" ? "color:#00ff66;" : "color:#ff3366;"} font-weight:bold;">${type === "income" ? "+" : "-"}¥${amount.toLocaleString()}</td></tr>`;
+
+    if (type === "transfer") {
+      // 🔄 【振替処理】
+      const fromAcc = data.fromAccount;
+      const toAcc = data.toAccount;
+      
+      if (isStealthMode && stealthTargets.methods && (stealthTargets.methods.includes(fromAcc) || stealthTargets.methods.includes(toAcc))) return;
+
+      if (fromAcc) methodAssets[fromAcc] = (methodAssets[fromAcc] || 0) - amount;
+      if (toAcc) methodAssets[toAcc] = (methodAssets[toAcc] || 0) + amount;
+
+      tableHtml += `<tr><td>${dateString}</td><td><span style="color:#ff3366;">[振替 出金]</span></td><td>資金移動</td><td><span style="color:#00bfff;">${fromAcc}</span></td><td>${data.memo || '-'}</td><td style="text-align: right; color:#ff3366; font-weight:bold;">-¥${amount.toLocaleString()}</td></tr>`;
+      tableHtml += `<tr><td>${dateString}</td><td><span style="color:#00ff66;">[振替 入金]</span></td><td>資金移動</td><td><span style="color:#00bfff;">${toAcc}</span></td><td>${data.memo || '-'}</td><td style="text-align: right; color:#00ff66; font-weight:bold;">+¥${amount.toLocaleString()}</td></tr>`;
+
+    } else {
+      // 💰 【通常処理】
+      const method = data.paymentMethod || "未設定";
+      const category = data.category || "その他";
+      const config = methodConfigs[method] || { type: "asset" };
+      let targetAccount = method;
+      
+      const isTarget = (stealthTargets.methods || []).includes(method) || (stealthTargets.categories || []).includes(category);
+      if (isStealthMode && isTarget) return; 
+
+      if (category === "初期残高設定") {
+        totalCapital += amount;
+        methodAssets[targetAccount] = (methodAssets[targetAccount] || 0) + amount;
+      } else {
+        if (type === "income") {
+          totalIncomeSum += amount;
+          if(config.type !== "credit") totalPLProfit += amount;
+          methodAssets[targetAccount] = (methodAssets[targetAccount] || 0) + amount;
+        } else {
+          totalExpenseSum += amount;
+          if(config.type !== "credit") totalPLProfit -= amount;
+          methodAssets[targetAccount] = (methodAssets[targetAccount] || 0) - amount;
+        }
+      }
+      
+      categoriesData[category] = (categoriesData[category] || 0) + amount;
+      dailyData[dayKey] = (dailyData[dayKey] || 0) + (type === "income" ? amount : -amount);
+      
+      const typeBadge = type === "income" ? `<span style="color:#00ff66;">[収入]</span>` : `<span style="color:#ff3366;">[支出]</span>`;
+      tableHtml += `<tr><td>${dateString}</td><td>${typeBadge}</td><td>${category}</td><td><span style="color:#00bfff;">${method}</span></td><td>${data.memo || '-'}</td><td style="text-align: right; ${type === "income" ? "color:#00ff66;" : "color:#ff3366;"} font-weight:bold;">${type === "income" ? "+" : "-"}¥${amount.toLocaleString()}</td></tr>`;
+    }
   });
   
+  // BS/PL UI更新
   let grandTotalAsset = 0;
   Object.keys(methodAssets).forEach(k => {
     const config = methodConfigs[k] || { type: "asset" };
     if(config.type === "asset" || config.type === "asset-debit") grandTotalAsset += methodAssets[k];
   });
 
-  
-document.getElementById("homeTotalAsset").innerText = `¥${grandTotalAsset.toLocaleString()}`;
+  document.getElementById("homeTotalAsset").innerText = `¥${grandTotalAsset.toLocaleString()}`;
   document.getElementById("totalAsset").innerText = `¥${grandTotalAsset.toLocaleString()}`;
   document.getElementById("totalIncome").innerText = `¥${totalIncomeSum.toLocaleString()}`;
   document.getElementById("totalExpense").innerText = `¥${totalExpenseSum.toLocaleString()}`;
   document.getElementById("transactionRowsHome").innerHTML = tableHtml;
 
-  // 💡 直感化ロジック：今月の収支の着地（黒字か赤字か）を判定して色を変える
   const homePLStatus = document.getElementById("homePLStatus");
   const homePLSubText = document.getElementById("homePLSubText");
-  const currentMonthNet = totalIncomeSum - totalExpenseSum; // 今月の純収支
+  const currentMonthNet = totalIncomeSum - totalExpenseSum;
 
   if (currentMonthNet >= 0) {
     homePLStatus.innerText = `+¥${currentMonthNet.toLocaleString()}`;
@@ -387,15 +413,13 @@ document.getElementById("homeTotalAsset").innerText = `¥${grandTotalAsset.toLoc
     homePLSubText.style.color = "#ff3366";
   }
 
-  // 💡 直感化ロジック：仮の月間予算（例: 10万円）に対する使用率を計算してバーを伸ばす
-  const MONTHLY_BUDGET = 100000; // 星翔の基準に合わせて自由に変えてね！
+  const MONTHLY_BUDGET = 100000;
   const budgetPercent = Math.min(Math.floor((totalExpenseSum / MONTHLY_BUDGET) * 100), 100);
   
   document.getElementById("homeBudgetPercent").innerText = `${budgetPercent}%`;
   const budgetBar = document.getElementById("homeBudgetBar");
   budgetBar.style.width = `${budgetPercent}%`;
   
-  // 予算オーバーしそうならバーの色をサイバーレッドに変える
   if (budgetPercent >= 80) {
     budgetBar.style.background = "#ff3366";
     budgetBar.style.boxShadow = "0 0 10px #ff3366";
@@ -408,8 +432,9 @@ document.getElementById("homeTotalAsset").innerText = `¥${grandTotalAsset.toLoc
 
   let assetHtml = ""; let bsAssetHtml = ""; let bsLiabilityHtml = ""; let assetTotalSum = 0; let liabilityTotalSum = 0;
 
-  Object.keys(methodConfigs).forEach(k => {
-    const config = methodConfigs[k]; const bal = methodAssets[k] || 0;
+  Object.keys(methodAssets).forEach(k => {
+    const config = methodConfigs[k] || { type: "asset" }; 
+    const bal = methodAssets[k] || 0;
     const color = bal >= 0 ? "#00ff66" : "#ff3366";
     assetHtml += `<tr class="clickable-row" onclick="openMethodModal('${k}')"><td>${k}</td><td style="text-align: right; color:${color}; font-family:monospace; font-weight:bold;">¥${bal.toLocaleString()}</td></tr>`;
     
@@ -438,47 +463,64 @@ document.getElementById("homeTotalAsset").innerText = `¥${grandTotalAsset.toLoc
   document.getElementById("bsAssetTotal").innerText = `¥ ${assetTotalSum.toLocaleString()}`;
   document.getElementById("bsLiabilityEquityTotal").innerText = `¥ ${rightTotalSum.toLocaleString()}`;
 
-  updateECharts(categoriesData, dailyData);
-
-  const chronologicalData = [...globalTransactionData].reverse(); // 古い順に並べる
-  const runningBalances = {};
+  // 2️⃣ 📈 グラフ用の計算エンジン（古い順に処理して累計を出す！）
+  const chronologicalData = [...globalTransactionData].reverse(); 
+  const chartRunningBalances = {}; // 💥名前を変えてエラーを回避！
   const dailyAccountBalances = {};
   
-  // 💡 修正：dashboard.js用の正しい変数（methodConfigsのキー）に直す！
-  const accountNames = Object.keys(methodConfigs);
-  
-  accountNames.forEach(m => {
-    runningBalances[m] = 0;
+  Object.keys(methodConfigs).forEach(m => {
+    chartRunningBalances[m] = 0;
     dailyAccountBalances[m] = {};
   });
 
   chronologicalData.forEach(d => {
-    const method = d.paymentMethod;
-    // 💡 修正：正しいリストでチェックする！
-    if(!method || !accountNames.includes(method)) return;
+    const type = d.type || "expense";
     const amt = d.amount || 0;
-    if (d.type === "income") runningBalances[method] += amt;
-    else runningBalances[method] -= amt;
     
     const dateObj = d.date ? d.date.toDate() : new Date();
     const y = dateObj.getFullYear();
     const m = String(dateObj.getMonth() + 1).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');
-    const dateStr = `${y}/${m}/${day}`; // YYYY/MM/DD
-    
-    // その日の最終残高を上書き記録していく
-    dailyAccountBalances[method][dateStr] = runningBalances[method];
+    const dateStr = `${y}/${m}/${day}`; 
+
+    // 💥 グラフ用の計算にも振替ロジックを完全追加！
+    if (type === "transfer") {
+      const fromAcc = d.fromAccount;
+      const toAcc = d.toAccount;
+      if (isStealthMode && stealthTargets.methods && (stealthTargets.methods.includes(fromAcc) || stealthTargets.methods.includes(toAcc))) return;
+
+      if (fromAcc && chartRunningBalances[fromAcc] !== undefined) {
+        chartRunningBalances[fromAcc] -= amt;
+        dailyAccountBalances[fromAcc][dateStr] = chartRunningBalances[fromAcc];
+      }
+      if (toAcc && chartRunningBalances[toAcc] !== undefined) {
+        chartRunningBalances[toAcc] += amt;
+        dailyAccountBalances[toAcc][dateStr] = chartRunningBalances[toAcc];
+      }
+    } else {
+      const method = d.paymentMethod;
+      if(!method || chartRunningBalances[method] === undefined) return;
+      
+      const category = d.category || "その他";
+      const isTarget = (stealthTargets.methods || []).includes(method) || (stealthTargets.categories || []).includes(category);
+      if (isStealthMode && isTarget) return;
+
+      if (type === "income") chartRunningBalances[method] += amt;
+      else chartRunningBalances[method] -= amt;
+      
+      dailyAccountBalances[method][dateStr] = chartRunningBalances[method];
+    }
   });
 
-  // 💡 新しく作った口座別残高データをグラフエンジンに渡す
+  // グラフとカレンダーの更新！
   updateECharts(categoriesData, dailyAccountBalances);
-
   renderCalendar();
   
   const d3Data = {};
   Object.keys(methodAssets).forEach(key => { d3Data[key] = methodAssets[key]; });
-  drawD3Simulation(d3Data);
+  if (typeof drawD3Simulation === 'function') drawD3Simulation(d3Data);
 }
+// --------------------------------=========
 
 // --------------------------------=========
 // 📈 ECharts グラフ描画エンジン（ボタン切替 ＆ ゼロスタート完全対応版）
@@ -500,10 +542,16 @@ function updateECharts(categories, accountBalances) {
   if(eHomeCategoryChart) eHomeCategoryChart.setOption(miniCatOpt);
 
   // --- 📈 口座別残高推移タイムライン（完全手動化 ＆ 全画面対応版） ---
+ // --- 📈 口座別残高推移タイムライン（完全手動化 ＆ 全画面対応版） ---
   window.chartAccountData = accountBalances;
-  window.chartAccountsList = Object.keys(methodConfigs);
 
-  // 💥 自動切り替えのタイマーを完全に破壊（削除）！
+  // 💥 修正1：ステルスモードの口座はリストから完全に抹消する！（存在を消す）
+  window.chartAccountsList = Object.keys(methodConfigs).filter(acc => {
+    const isHidden = typeof isStealthMode !== 'undefined' && isStealthMode && stealthTargets.methods && stealthTargets.methods.includes(acc);
+    return !isHidden; // 隠されていない口座だけを生き残らせる
+  });
+
+  // 自動切り替えのタイマーを完全に破壊
   if (window.chartInterval) clearInterval(window.chartInterval);
 
   // 💡 ホーム画面と収支確認画面の両方にボタンを作る関数
@@ -513,7 +561,7 @@ function updateECharts(categories, accountBalances) {
     selectorDiv.innerHTML = ""; 
     
     if (window.chartAccountsList.length === 0) {
-      selectorDiv.innerHTML = "<span style='color:#888; font-size:12px;'>口座が登録されていません</span>";
+      selectorDiv.innerHTML = "<span style='color:#888; font-size:12px;'>表示できる口座がありません</span>";
       return;
     }
     
@@ -527,7 +575,6 @@ function updateECharts(categories, accountBalances) {
         if(window.currentChartIndex !== index) { btn.style.background = "#1a231f"; btn.style.color = "#00bfff"; } 
       };
       
-      // ボタンを押した時だけグラフが切り替わる！
       btn.onclick = (e) => {
         e.stopPropagation();
         window.currentChartIndex = index;
@@ -537,17 +584,21 @@ function updateECharts(categories, accountBalances) {
     });
   }
 
-  // 両方の画面にボタンを生成
-  createButtons("bankChartSelector");       // 総合画面用
-  createButtons("trendPageBankSelector");   // 収支確認画面用
+  createButtons("bankChartSelector");       
+  createButtons("trendPageBankSelector");   
 
-  window.currentChartIndex = 0;
+  // ステルス切り替え時にインデックスがはみ出さないように調整
+  if (window.currentChartIndex >= window.chartAccountsList.length) {
+    window.currentChartIndex = 0;
+  }
 
   // 手動でグラフを描画する関数
   function renderTrendChart() {
     if(!window.chartAccountsList || window.chartAccountsList.length === 0) {
       if(eHomeTrendChart) eHomeTrendChart.clear();
       if(eTrendChart) eTrendChart.clear();
+      const balancesGrid = document.getElementById('trendBalancesGrid');
+      if (balancesGrid) balancesGrid.innerHTML = ''; // パネルも消滅させる
       return;
     }
 
@@ -556,13 +607,22 @@ function updateECharts(categories, accountBalances) {
     let dates = Object.keys(dataObj).sort();
     let balances = dates.map(d => dataObj[d]);
 
+    // 💥 修正2：今日の日付まで「水平線」を引く（残高維持を表現）
+    const todayObj = new Date();
+    const ty = todayObj.getFullYear();
+    const tm = String(todayObj.getMonth() + 1).padStart(2, '0');
+    const td = String(todayObj.getDate()).padStart(2, '0');
+    const todayStr = `${ty}/${tm}/${td}`;
+
     if (dates.length === 0) {
-      const today = new Date();
-      const y = today.getFullYear();
-      const m = String(today.getMonth() + 1).padStart(2, '0');
-      const d = String(today.getDate()).padStart(2, '0');
-      dates = [`${y}/${m}/${d}`];
+      dates = [todayStr];
       balances = [0];
+    } else {
+      const lastDate = dates[dates.length - 1];
+      if (lastDate !== todayStr) {
+        dates.push(todayStr); // グラフの末尾に「今日」を追加
+        balances.push(balances[balances.length - 1]); // 最新の残高をそのまま引き継ぐ！
+      }
     }
 
     // 両方の画面のボタンの色を更新
@@ -576,6 +636,31 @@ function updateECharts(categories, accountBalances) {
         });
       }
     });
+
+    // 💥 全口座の「パッと見」現在残高パネルを生成
+    // （すでにステルス口座はリストから消されているので、ここではそのまま描画するだけで完璧に隠れる！）
+    const balancesGrid = document.getElementById('trendBalancesGrid');
+    if (balancesGrid) {
+      balancesGrid.innerHTML = '';
+      window.chartAccountsList.forEach((acc, i) => {
+        const accData = window.chartAccountData[acc] || {};
+        const accDates = Object.keys(accData).sort();
+        const latestBalance = accDates.length > 0 ? accData[accDates[accDates.length - 1]] : 0;
+        
+        const isSelected = (i === window.currentChartIndex);
+        const bgColor = isSelected ? 'rgba(0, 191, 255, 0.1)' : '#11141a';
+        const borderColor = isSelected ? '#00bfff' : '#252838';
+        const textColor = isSelected ? '#00bfff' : '#fff';
+        const shadow = isSelected ? 'box-shadow: 0 0 15px rgba(0,191,255,0.3);' : '';
+
+        balancesGrid.innerHTML += `
+          <div style="flex: 1; min-width: 110px; background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 8px; padding: 12px 10px; text-align: center; transition: 0.3s; ${shadow}">
+            <div style="font-size: 11px; color: #aaa; margin-bottom: 5px; white-space: nowrap;">${acc}</div>
+            <div style="font-size: 15px; color: ${textColor}; font-weight: bold;">¥${latestBalance.toLocaleString()}</div>
+          </div>
+        `;
+      });
+    }
 
     const trendOption = {
       backgroundColor: 'transparent',
@@ -611,7 +696,7 @@ function updateECharts(categories, accountBalances) {
     if (homeTitle) homeTitle.innerText = `📈 ${accountName} の残高推移`;
   }
 
-  // 初回のみ手動描画を実行（これ以降は勝手に変わらない！）
+  // 初回のみ手動描画を実行
   renderTrendChart();
 }
 
@@ -699,50 +784,120 @@ function updateECharts(categories, accountBalances) {
   }, 8000);
 
 
+// --------------------------------=========
+// 🎈 資産の重力場（D3.js フォースバブル - 超サイバーホログラム版）
+// --------------------------------=========
 function drawD3Simulation(methodAssets) {
-  const container = document.getElementById('d3PaymentChart');
-  if(!container) return;
-  const width = container.clientWidth || 800;
-  const height = container.clientHeight || 380;
-  d3.select("#d3PaymentChart").selectAll("*").remove();
-  
-  let nodes = Object.entries(methodAssets).map(([id, value]) => ({ id, value })).filter(d => d.value !== 0);
-  if (nodes.length === 0) {
-    d3.select("#d3PaymentChart").append("text").attr("x", width/2).attr("y", height/2).attr("fill", "#888").attr("text-anchor", "middle").text("表示できる口座データがありません");
-    return;
-  }
-  
-  const radiusScale = d3.scaleSqrt().domain([0, d3.max(nodes, d => Math.abs(d.value))]).range([30, 80]);
-  const colorScale = d3.scaleOrdinal().range(['#00ff66', '#00bfff', '#ff00ff', '#ccff00', '#ffaa00']);
-  
-  const svg = d3.select("#d3PaymentChart").append("svg").attr("width", "100%").attr("height", "100%").attr("viewBox", `0 0 ${width} ${height}`);
-  d3Simulation = d3.forceSimulation(nodes)
-    .force("charge", d3.forceManyBody().strength(10))
-    .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("collision", d3.forceCollide().radius(d => radiusScale(Math.abs(d.value)) + 5))
-    .on("tick", ticked);
-    
-  const nodeGroups = svg.selectAll(".node").data(nodes).enter().append("g").attr("class", "node")
-    .call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended));
-    
-  nodeGroups.append("circle").attr("class", "d3-bubble").attr("r", d => radiusScale(Math.abs(d.value)))
-    .attr("fill", d => d.value > 0 ? colorScale(d.id) : "rgba(255, 51, 102, 0.6)")
-    .attr("style", "filter: drop-shadow(0 0 15px rgba(255,255,255,0.3));");
-    
-  nodeGroups.append("text").attr("class", "d3-label").attr("dy", "-0.3em").text(d => d.id);
-  nodeGroups.append("text").attr("class", "d3-text").attr("dy", "1.2em").text(d => `¥${d.value.toLocaleString()}`);
-  
-  function ticked() {
-    nodeGroups.attr("transform", d => {
-      const r = radiusScale(Math.abs(d.value));
-      d.x = Math.max(r, Math.min(width - r, d.x));
-      d.y = Math.max(r, Math.min(height - r, d.y));
-      return `translate(${d.x},${d.y})`;
-    });
-  }
-  function dragstarted(event, d) { if (!event.active) d3Simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
-  function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
-  function dragended(event, d) { if (!event.active) d3Simulation.alphaTarget(0); d.fx = null; d.fy = null; }
+    const paymentChartDiv = document.getElementById("paymentChart");
+    if (paymentChartDiv) {
+      paymentChartDiv.innerHTML = ""; 
+      
+      const width = paymentChartDiv.clientWidth || 800;
+      const height = paymentChartDiv.clientHeight || 400;
+      
+      const svg = d3.select("#paymentChart")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+      // 💡 超クールな「ネオン発光フィルター」をSVG空間に定義する
+      const defs = svg.append("defs");
+      const filter = defs.append("filter").attr("id", "neonGlow");
+      filter.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "coloredBlur");
+      const feMerge = filter.append("feMerge");
+      feMerge.append("feMergeNode").attr("in", "coloredBlur");
+      feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+      // 💡 ステルス機能：隠す設定の口座は「配列から完全に抹消」して存在を消す！
+      const visibleAccounts = window.chartAccountsList.filter(acc => {
+        const isHidden = typeof isStealthMode !== 'undefined' && isStealthMode && stealthTargets.methods && stealthTargets.methods.includes(acc);
+        return !isHidden; // 隠されていない口座だけを生き残らせる
+      });
+
+      // バブル用のデータを作成
+      const nodes = visibleAccounts.map(acc => {
+        const accData = window.chartAccountData[acc] || {};
+        const accDates = Object.keys(accData).sort();
+        const bal = accDates.length > 0 ? accData[accDates[accDates.length - 1]] : 0;
+        return {
+          id: acc,
+          value: bal,
+          // 💡 バブルを少し大きめにして見栄えを強化（最低30、最大80）
+          radius: Math.max(30, Math.min(80, bal / 2500 + 30))
+        };
+      });
+
+      const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+      const simulation = d3.forceSimulation(nodes)
+        .force("charge", d3.forceManyBody().strength(15)) // 反発力を少し強くして動きを良くする
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("collision", d3.forceCollide().radius(d => d.radius + 8)); // ぶつかる距離を広げてスタイリッシュに
+
+      const node = svg.append("g")
+        .selectAll("g")
+        .data(nodes)
+        .enter().append("g")
+        .call(d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended));
+
+      // 💡 ホログラム風の超カッコいい球体デザイン！
+      node.append("circle")
+        .attr("r", d => d.radius)
+        .attr("fill", "#0a0c10") // 中身は宇宙空間のようなダークカラーで透けさせる
+        .attr("stroke", d => color(d.id)) // 縁（フチ）をカラーリング
+        .attr("stroke-width", 3) // 縁を太く
+        .style("fill-opacity", 0.7) // 半透明
+        .style("filter", "url(#neonGlow)") // 定義したネオンフィルターで激しく光らせる！
+        // 💡 マウスを乗せると白くフラッシュするギミック
+        .on("mouseover", function() { d3.select(this).attr("stroke", "#fff").attr("stroke-width", 5); })
+        .on("mouseout", function(e, d) { d3.select(this).attr("stroke", color(d.id)).attr("stroke-width", 3); });
+
+      // 口座名（ど真ん中配置 ＆ 発光テキスト）
+      node.append("text")
+        .attr("text-anchor", "middle")
+        .attr("dy", "-0.3em")
+        .text(d => d.id)
+        .style("font-size", "13px")
+        .style("fill", "#fff")
+        .style("font-weight", "bold")
+        .style("pointer-events", "none")
+        .style("text-shadow", "0px 0px 5px rgba(255, 255, 255, 0.8)"); // 文字の周りに後光を射す
+
+      // 金額（ど真ん中配置 ＆ サイバーグリーン発光）※ステルスはすでに抹消済みなのでそのまま表示！
+      node.append("text")
+        .attr("text-anchor", "middle")
+        .attr("dy", "1.2em")
+        .text(d => "¥" + d.value.toLocaleString())
+        .style("font-size", "12px")
+        .style("fill", "#00ff66")
+        .style("font-weight", "bold")
+        .style("pointer-events", "none")
+        .style("text-shadow", "0px 0px 5px rgba(0, 255, 102, 0.8)");
+
+      simulation.on("tick", () => {
+        node.attr("transform", d => {
+            // 画面外に飛んでいかないように壁を作る
+            d.x = Math.max(d.radius, Math.min(width - d.radius, d.x));
+            d.y = Math.max(d.radius, Math.min(height - d.radius, d.y));
+            return `translate(${d.x},${d.y})`;
+        });
+      });
+
+      function dragstarted(event, d) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x; d.fy = d.y;
+      }
+      function dragged(event, d) {
+        d.fx = event.x; d.fy = event.y;
+      }
+      function dragended(event, d) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null; d.fy = null;
+      }
+    }
 }
 
 // --------------------------------=========
@@ -785,18 +940,28 @@ function renderCalendar() {
     let dayIncome = 0;
     let dayExpense = 0;
     
-    globalTransactionData.forEach(tx => {
-      if(!tx.date) return;
+    // 💡 既存の残高初期化処理のあとに動いているループを探してね
+    
+   globalTransactionData.forEach(tx => {
+      if (!tx.date) return;
       const txDate = tx.date.toDate();
+      
       if (txDate.getFullYear() === year && txDate.getMonth() === month && txDate.getDate() === d) {
         
-        if (isStealthMode && stealthTargets.methods && stealthTargets.methods.includes(tx.paymentMethod)) return;
-        
+        // 🔒 ステルスモードの強力な判定ゲート！
+        const method = tx.paymentMethod || "未設定";
+        const category = tx.category || "その他";
+        if (isStealthMode) {
+          if ((stealthTargets.methods || []).includes(method) || (stealthTargets.categories || []).includes(category)) {
+            return; // 👈 ステルス対象なら、この日の合計金額には一切足さずにスキップ！
+          }
+        }
+
+        // 振替は無視して、純粋な収入と支出だけをカレンダーに足す
         if (tx.type === 'income') dayIncome += (tx.amount || 0);
-        else dayExpense += (tx.amount || 0);
+        else if (tx.type === 'expense') dayExpense += (tx.amount || 0);
       }
     });
-    
     // 💡 さっき消えちゃってたのはここ！今日かどうかの判定
     const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
     const todayClass = isToday ? 'today' : '';
@@ -829,29 +994,7 @@ window.openDayDetailModal = function(year, month, day) {
 
   let hasData = false;
 
-  // Firebaseから取得済みの全データから、その日のデータだけを引っ張り出す
-  globalTransactionData.forEach(tx => {
-    if(!tx.date) return;
-    const txDate = tx.date.toDate();
-    if (txDate.getFullYear() === year && txDate.getMonth() === month && txDate.getDate() === day) {
-      
-      if (isStealthMode && stealthTargets.methods && stealthTargets.methods.includes(tx.paymentMethod)) return;
-      hasData = true;
-
-      const typeBadge = tx.type === 'income' ? '<span style="color:#00bfff;">[収入]</span>' : '<span style="color:#ff3366;">[支出]</span>';
-      const amtColor = tx.type === 'income' ? '#00bfff' : '#ff3366';
-      const sign = tx.type === 'income' ? '+' : '-';
-
-      rowsContainer.innerHTML += `
-        <tr style="border-bottom: 1px solid #1a1e29; font-size: 13px;">
-          <td style="padding: 10px 0;">${typeBadge}</td>
-          <td style="padding: 10px 0; color: #fff;">${tx.category || 'なし'}</td>
-          <td style="padding: 10px 0; color: #aaa;">${tx.memo || '-'}</td>
-          <td style="padding: 10px 0; text-align: right; color: ${amtColor}; font-weight: bold;">${sign}¥${tx.amount.toLocaleString()}</td>
-        </tr>
-      `;
-    }
-  });
+  
 
   if (!hasData) {
     rowsContainer.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#555; padding: 20px 0; font-size:12px;">この日の取引履歴はありません。</td></tr>`;
